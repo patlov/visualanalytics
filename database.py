@@ -54,7 +54,7 @@ def firstLineValid(header):
 
 def getDataOfOneDay(sensor_id, sensor_type, date, sensor=None):
 
-    assert(sensor == None or str(sensor_id) == sensor.id)
+    assert(sensor == None or sensor_id == sensor.id)
 
     csv_filename = buildCSVurl(sensor_id, sensor_type, date)
     content = getCSVContent(csv_filename)
@@ -79,20 +79,24 @@ def getDataOfOneDay(sensor_id, sensor_type, date, sensor=None):
 
 
 #---------------------------------------------------------------------------------
-class MessageEncoder(json.JSONEncoder):
+class SensorEncoder(json.JSONEncoder):
     def default(self, o):
+        if isinstance(o, (datetime.date, datetime.datetime)):
+            return o.isoformat()
         return o.__dict__
 
 
 def saveSensor(sensor_object : Sensor, day):
 
+
     with open(buildFilename(sensor_object.id, sensor_object.type, day) + ".json", 'w', encoding='utf-8') as file:
-        json.dump(sensor_object, file, ensure_ascii=False, indent=2, cls=MessageEncoder)
+        json.dump(sensor_object, file, ensure_ascii=False, indent=2, cls=SensorEncoder)
 
 # from_time and to_time are date_time objects
-def getData(sensor_id, sensor_type,  from_time, to_time):
+def getData(sensor_id, from_time, to_time):
 
     from_time_string = ""
+    sensor_type = getSensorType(sensor_id)
 
     if isinstance(from_time, datetime.datetime):
         from_time_string = from_time.strftime("%Y-%m-%d")
@@ -120,11 +124,14 @@ def getData(sensor_id, sensor_type,  from_time, to_time):
 
 
 def main():
+
+
+    # example call
     from_time = datetime.datetime(2021, 2, 1)
     to_time = datetime.datetime(2021,2,2)
 
 
-    getData(141, getSensorType(141), from_time, to_time);
+    sensor = getData(141, from_time, to_time);
     pass
 
 if __name__ == "__main__":

@@ -15,13 +15,35 @@ class SensorType(str, Enum):
 
 
 class SensorData:
-    def __init__(self, timestamp : datetime, pressure :float, altitude :float, pressure_sealevel : float, temperature : float, humidity : float):
-        self.timestamp = timestamp
-        self.pressure = pressure
-        self.altitude = altitude
-        self.pressure_sealevel = pressure_sealevel
-        self.humidity = humidity
-        self.temperature = temperature
+    def __init__(self, timestamp : datetime, pressure :float, altitude, pressure_sealevel, temperature : float, humidity : float):
+
+
+        self.timestamp = datetime.datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S")
+
+        if pressure != '':
+            self.pressure = float(pressure)
+        else:
+            self.pressure = 'NA'
+
+        if altitude != '':
+            self.altitude = float(altitude)
+        else:
+            self.altitude = 'NA'
+
+        if pressure_sealevel != '':
+            self.pressure_sealevel = float(pressure_sealevel)
+        else :
+            self.pressure_sealevel = 'NA'
+
+        if humidity != '':
+            self.humidity = float(humidity)
+        else:
+            self.humidity = 'NA'
+
+        if temperature != '':
+            self.temperature = float(temperature)
+        else:
+            self.temperature = 'NA'
 
     def toJson(self):
         return json.dumps(self, default=lambda o: o.__dict__, indent=2, ensure_ascii=False)
@@ -29,11 +51,29 @@ class SensorData:
 
 class Sensor:
     def __init__(self, id : int, type : SensorType, location : int, lat : float, long : float):
-        self.id = id
+
+        if id != '':
+            self.id = int(id)
+        else:
+            self.id = 'NA'
+
         self.type = type
-        self.location = location
-        self.long = long
-        self.lat = lat
+
+        if location != '':
+            self.location = int(location)
+        else:
+            self.location = 'NA'
+
+        if long != '':
+            self.long = float(long)
+        else:
+            self.long = 'NA'
+
+        if lat != '':
+            self.lat = float(lat)
+        else:
+            self.lat = 'NA'
+
         self.dataList = []
 
     def addDatapoint(self, datapoint : SensorData):
