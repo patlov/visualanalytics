@@ -50,7 +50,7 @@ class SensorData:
 
 
 class Sensor:
-    def __init__(self, id : int, type : SensorType, location : int, lat : float, long : float):
+    def __init__(self, id : int, type : SensorType, country : str, state : str, city : str, lat : float, long : float):
 
         if id != '':
             self.id = int(id)
@@ -59,10 +59,10 @@ class Sensor:
 
         self.type = type
 
-        if location != '':
-            self.location = int(location)
-        else:
-            self.location = 'NA'
+        self.country = country
+        self.state = state
+        self.city = city
+
 
         if long != '':
             self.long = float(long)

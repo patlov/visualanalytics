@@ -1,3 +1,4 @@
+import copy
 
 import requests
 from bs4 import BeautifulSoup
@@ -5,12 +6,19 @@ from pathlib import Path
 from datetime import *
 import csv
 import json
+import here as h
 from classes import *
+import gzip
+import os
 
 local_path = "database/"
 base_url = "http://archive.sensor.community/"
 ext = "csv"
 sensors_path = "database/sensors.json"
+
+
+# if true, we save the json files in zipped mode, if false its in plaintext json
+ZIP_MODE = True
 
 def getSensorType(sensor_id):
     if isinstance(sensor_id, int):
@@ -35,6 +43,8 @@ def getCSVContent(file_url):
 def buildCSVurl(sensor_id, sensor_type, day):
     return base_url + day + "/" + buildFilename(sensor_id, sensor_type, day) + ".csv"
 
+def buildLocalPath(sensor_id, sensor_type, day):
+    return local_path + day + "/" + buildFilename(sensor_id, sensor_type, day) + ".json"
 
 def buildFilename(sensor_id, sensor_type, day):
     return day + "_" + str(sensor_type) + "_sensor_" + str(sensor_id)
@@ -61,14 +71,14 @@ def getDataOfOneDay(sensor_id, sensor_type, date, sensor=None):
 
     cr = csv.reader(content.splitlines(), delimiter=';')
     my_list = list(cr)
-    if not firstLineValid(my_list[0]):
-        print("error in this file - format not correct")
-        return False
+    assert(firstLineValid(my_list[0]))
 
     first_sensor = my_list[1]
 
     if sensor == None:
-        sensor = Sensor(first_sensor[0], first_sensor[1], first_sensor[2],first_sensor[3], first_sensor[4])
+        country, state, city = h.get_country_info(first_sensor[3], first_sensor[4])
+
+        sensor = Sensor(first_sensor[0], first_sensor[1], country, state, city,first_sensor[3], first_sensor[4])
     for row in my_list[1:]:
         assert(row[0] == first_sensor[0] and row[1] == first_sensor[1] and row[2] == first_sensor[2] and row[3] == first_sensor[3] and row[4] == first_sensor[4])
         new_datapoint = SensorData(row[5], row[6], row[7], row[8], row[9], row[10])
@@ -88,9 +98,17 @@ class SensorEncoder(json.JSONEncoder):
 
 def saveSensor(sensor_object : Sensor, day):
 
+    global ZIP_MODE
 
-    with open(buildFilename(sensor_object.id, sensor_object.type, day) + ".json", 'w', encoding='utf-8') as file:
-        json.dump(sensor_object, file, ensure_ascii=False, indent=2, cls=SensorEncoder)
+    if not os.path.exists(local_path + day): # if folder nox exists, create it
+        Path(local_path + day).mkdir(parents=True, exist_ok=True)
+
+    if ZIP_MODE:
+        with gzip.open(buildLocalPath(sensor_object.id, sensor_object.type, day), 'wt', encoding='utf-8') as file:
+            json.dump(sensor_object, file, ensure_ascii=False, indent=2, cls=SensorEncoder)
+    else:
+        with open(buildLocalPath(sensor_object.id, sensor_object.type, day), 'w', encoding='utf-8') as file:
+            json.dump(sensor_object, file, ensure_ascii=False, indent=2, cls=SensorEncoder)
 
 # from_time and to_time are date_time objects
 def getData(sensor_id, from_time, to_time):
@@ -129,7 +147,6 @@ def main():
     # example call
     from_time = datetime.datetime(2021, 2, 1)
     to_time = datetime.datetime(2021,2,2)
-
 
     sensor = getData(141, from_time, to_time);
     pass
