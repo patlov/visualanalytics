@@ -103,11 +103,15 @@ def saveSensor(sensor_object : Sensor, day):
     if not os.path.exists(local_path + day): # if folder nox exists, create it
         Path(local_path + day).mkdir(parents=True, exist_ok=True)
 
+    filename = buildLocalPath(sensor_object.id, sensor_object.type, day)
+    if os.path.exists(filename):
+        return
+
     if ZIP_MODE:
-        with gzip.open(buildLocalPath(sensor_object.id, sensor_object.type, day), 'wt', encoding='utf-8') as file:
+        with gzip.open(filename, 'wt', encoding='utf-8') as file:
             json.dump(sensor_object, file, ensure_ascii=False, indent=2, cls=SensorEncoder)
     else:
-        with open(buildLocalPath(sensor_object.id, sensor_object.type, day), 'w', encoding='utf-8') as file:
+        with open(filename, 'w', encoding='utf-8') as file:
             json.dump(sensor_object, file, ensure_ascii=False, indent=2, cls=SensorEncoder)
 
 # from_time and to_time are date_time objects
