@@ -78,6 +78,19 @@ def findSensorTypeInCSV(sensor):
     printToLog(sensor, "-> sensor not in DICT and NOT in FILE")
     return "undefined"
 
+
+def iterateOverCountries():
+    country_dict = getCountriesJson()
+
+    for country in country_dict:
+        for state in country_dict[country]:
+            for city in country_dict[country][state]:
+                sensor_list = country_dict[country][state][city]
+                for i in range(len(sensor_list)):
+                    sensor_list[i] = str(sensor_list[i])
+
+    exportCountriesJson(country_dict)
+
 def addCountriesToSensorList():
     country_dict = getCountriesJson()
 
@@ -118,6 +131,11 @@ def getCountriesJson():
     with open('database/country_sensors.json', "r") as jsonFile:
         data = json.load(jsonFile)
     return data
+
+def exportCountriesJson(countries_dict):
+
+    with open('database/country_sensors.json', "w", encoding='utf-8') as jsonFile:
+        json.dump(countries_dict, jsonFile, ensure_ascii=False, indent=2)
 
 #---------------------------------------------------------------------------------------------------------
 def printToErrorLog(sensor_id, reason = None):
@@ -164,14 +182,14 @@ def crawlCountriesToJson():
         except:
             printToErrorLog(sensor_id=current_sensor)
 
-    with open('database/country_sensors.json', "w", encoding='utf-8') as jsonFile:
-        json.dump(geo_cluster, jsonFile, ensure_ascii=False, indent=2)
+    exportCountriesJson(geo_cluster)
 
 
 def main():
 
     # crawlCountriesToJson()
-    # addCountriesToSensorList()
+    #
+    iterateOverCountries()
     pass
 
 if __name__ == "__main__":
