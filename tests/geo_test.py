@@ -1,8 +1,7 @@
 import unittest
-import clustering as c
 import api as a
 
-class MyTestCase(unittest.TestCase):
+class TestGeo(unittest.TestCase):
     def test_no_geo(self):
         sensors = a.get_geo_info()
         self.assertEqual(len(sensors), 80)
