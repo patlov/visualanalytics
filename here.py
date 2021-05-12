@@ -58,7 +58,7 @@ def get_country_info(lat, lon):
 
 
 def main():
-    print(get_country_info(43, 11))
+    print(get_country_info(49, -117))
 
 
 if __name__ == "__main__":

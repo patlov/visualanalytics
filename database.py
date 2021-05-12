@@ -15,7 +15,7 @@ local_path = "database/"
 base_url = "http://archive.sensor.community/"
 ext = "csv"
 sensors_path = "database/sensors.json"
-
+country_path = "database/country_sensors.json"
 
 # if true, we save the json files in zipped mode, if false its in plaintext json
 ZIP_MODE = True
@@ -30,7 +30,7 @@ def getSensorType(sensor_id):
         print("error, sensor " + str(sensor_id) + " is not in list")
         return
 
-    return data[sensor_id]
+    return data[sensor_id][0]
 
 
 def getCSVContent(file_url):
@@ -96,6 +96,14 @@ class SensorEncoder(json.JSONEncoder):
         return o.__dict__
 
 
+def calculateStepSize(from_time : datetime.datetime, to_time : datetime.datetime):
+    assert(from_time < to_time)
+    timedelta = to_time - from_time
+    minutes = int(timedelta.total_seconds() / 60)
+    step_size = int(minutes / 100)
+    return step_size
+
+
 def saveSensor(sensor_object : Sensor, day):
 
     global ZIP_MODE
@@ -113,6 +121,9 @@ def saveSensor(sensor_object : Sensor, day):
     else:
         with open(filename, 'w', encoding='utf-8') as file:
             json.dump(sensor_object, file, ensure_ascii=False, indent=2, cls=SensorEncoder)
+
+def reduceDatatoStepSize(sensor : Sensor, step_size_minutes : int):
+    pass
 
 # from_time and to_time are date_time objects
 def getData(sensor_id, from_time, to_time):
@@ -142,6 +153,12 @@ def getData(sensor_id, from_time, to_time):
     # todo push into cache system
 
     saveSensor(requested_sensor, from_time_string)
+
+
+    # todo reduce sensor data according to step size
+    step_size_minutes = calculateStepSize(from_time, to_time)
+    reduceDatatoStepSize(requested_sensor, step_size_minutes)
+
     return requested_sensor
 
 
@@ -152,7 +169,7 @@ def main():
     from_time = datetime.datetime(2021, 2, 1)
     to_time = datetime.datetime(2021,2,2)
 
-    sensor = getData(141, from_time, to_time);
+    sensor = getData(141, from_time, to_time)
     pass
 
 if __name__ == "__main__":

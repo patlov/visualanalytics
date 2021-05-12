@@ -1,6 +1,13 @@
 import os
 import pandas as pd
 import numpy as np
+from downloadDatabase import getCSVFileNamesInFolder
+import json
+import here as h
+import sys
+from datetime import datetime
+
+ext = "csv"
 
 
 def cluster_countries(main_folder):

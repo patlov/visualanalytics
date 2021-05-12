@@ -2,10 +2,10 @@ import requests
 from bs4 import BeautifulSoup
 from pathlib import Path
 import json
-import here as h
 import pandas as pd
 from io import StringIO
 import os
+import here as h
 
 local_path = "database/"
 base_url = "http://archive.sensor.community/"
@@ -45,6 +45,12 @@ def fileExists(folder_name, filename):
         return False
 
 
+def getSensorIdAndType(filename):
+    list_of_underlines = [i for i in range(len(filename)) if filename.startswith('_', i)]
+    sensor_type = filename[list_of_underlines[0] + 1: list_of_underlines[1]]
+    sensor_id = filename[list_of_underlines[2] + 1: len(filename) - 4]
+    return sensor_type, sensor_id
+
 def downloadSensorIdAndType(folder_url):
     csv_list = getCSVFileNamesInFolder(folder_url, ext)
     if not csv_list:  # empty list
@@ -52,11 +58,7 @@ def downloadSensorIdAndType(folder_url):
 
     for csv_url in csv_list:
         filename = csv_url[42:]
-
-        list_of_underlines = [i for i in range(len(filename)) if filename.startswith('_', i)]
-        sensor_type = filename[list_of_underlines[0] + 1: list_of_underlines[1]]
-        sensor_id = filename[list_of_underlines[2] + 1: len(filename) - 4]
-
+        sensor_type, sensor_id = getSensorIdAndType(filename)
         writeSensorToJson(sensor_id, sensor_type)
 
 
@@ -75,12 +77,6 @@ def downloadFolder(folder_url):
         if fileExists(folder_name, filename):  # only download files we did not downloaded yet
             continue
 
-        # try:
-        #     file = open(local_path + folder_name + filename, 'wb')
-        # except FileNotFoundError: # create folder if it does not exist
-        #     Path(local_path + folder_name).mkdir(parents=True, exist_ok=True)
-        #     file = open(local_path + csv_url[32:], 'wb')
-
         if not os.path.exists(local_path + folder_name):
             Path(local_path + folder_name).mkdir(parents=True, exist_ok=True)
             file_path = local_path + csv_url[32:]
@@ -92,8 +88,6 @@ def downloadFolder(folder_url):
         df['country'], df['state'], df['city'] = h.get_country_info(df['lat'][0], df['lon'][0])
 
         df.to_csv(file_path)
-        # file.write(url_content)
-        # file.close()
 
 
 def download():
@@ -127,7 +121,6 @@ def download():
 
 def main():
     download()
-
 
 if __name__ == "__main__":
     main()
