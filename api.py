@@ -1,4 +1,3 @@
-
 import database
 import dataManagement
 from datetime import *
@@ -9,24 +8,21 @@ def getSensorData(sensor_id : str, from_time : datetime, to_time : datetime):
 def getSensorType(sensor_id : str):
     database.getSensorType(sensor_id)
 
-def getCountries():
-    countries_dict = dataManagement.getCountriesJson()
-    return countries_dict.keys()
+def safe_get(dc, elems):
+    tmp_dc = dc
+    for e in elems:
+        if e and e in tmp_dc:
+            tmp_dc = tmp_dc[e]
+        else:
+            break
 
-def getState(country : str):
-    countries_dict = dataManagement.getCountriesJson()
-    if country not in countries_dict:
-        return None
-    return countries_dict[country]
+    return tmp_dc
 
-def getCity(country : str, state : str):
+def get_geo_info(country=None, state=None, city=None):
     countries_dict = dataManagement.getCountriesJson()
-    if country not in countries_dict or state not in countries_dict:
-        return None
-    return countries_dict[country][state]
+    result = safe_get(countries_dict, [country, state, city])
 
-def getSensors(country : str, state : str, city : str):
-    countries_dict = dataManagement.getCountriesJson()
-    if country not in countries_dict or state not in countries_dict or city not in countries_dict:
-        return None
-    return countries_dict[country][state][city]
+    if isinstance(result, dict):
+        result = list(result.keys())
+
+    return result
