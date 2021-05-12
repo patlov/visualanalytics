@@ -123,6 +123,22 @@ def saveSensor(sensor_object : Sensor, day):
             json.dump(sensor_object, file, ensure_ascii=False, indent=2, cls=SensorEncoder)
 
 def reduceDatatoStepSize(sensor : Sensor, step_size_minutes : int):
+    sensor_data = sensor.dataList
+    time_of_last = sensor_data[0].timestamp
+
+    i = 1 # to remove
+    for current_data in sensor_data[:]:
+        if current_data == sensor_data[0]:
+            continue
+        time_of_next = time_of_last + datetime.timedelta(hours=0, minutes=step_size_minutes, seconds=0)
+        if current_data.timestamp < time_of_next:
+            sensor_data.pop(i)
+            i -= 1
+        else:
+            time_of_last = current_data.timestamp
+        i += 1
+
+    assert len(sensor_data) <= 100 # or David has done the calculation wrong (again)
     pass
 
 # from_time and to_time are date_time objects
@@ -135,12 +151,14 @@ def getData(sensor_id, from_time, to_time):
         from_time_string = from_time.strftime("%Y-%m-%d")
 
     # todo: validation check time
+    if from_time == to_time:
+        to_time += timedelta(days=1)
     # todo check if in cache
 
     #  crawl data
     current_time = from_time
     requested_sensor = None
-    while(current_time <= to_time):
+    while(current_time < to_time):
         current_time_string = current_time.strftime("%Y-%m-%d")
         if current_time == from_time:
             requested_sensor = getDataOfOneDay(sensor_id, sensor_type, current_time_string)
@@ -155,7 +173,6 @@ def getData(sensor_id, from_time, to_time):
     saveSensor(requested_sensor, from_time_string)
 
 
-    # todo reduce sensor data according to step size
     step_size_minutes = calculateStepSize(from_time, to_time)
     reduceDatatoStepSize(requested_sensor, step_size_minutes)
 
