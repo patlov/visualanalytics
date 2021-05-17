@@ -11,6 +11,8 @@ from classes import *
 import gzip
 import os
 
+import dataManagement
+
 local_path = "database/"
 base_url = "http://archive.sensor.community/"
 ext = "csv"
@@ -18,7 +20,7 @@ sensors_path = "database/sensors.json"
 country_path = "database/country_sensors.json"
 
 # if true, we save the json files in zipped mode, if false its in plaintext json
-ZIP_MODE = True
+ZIP_MODE = False
 
 def getSensorType(sensor_id):
     if isinstance(sensor_id, int):
@@ -76,13 +78,14 @@ def getDataOfOneDay(sensor_id, sensor_type, date, sensor=None):
     first_sensor = my_list[1]
 
     if sensor == None:
-        country, state, city = h.get_country_info(first_sensor[3], first_sensor[4])
-
+        country, state, city = dataManagement.getCountryOfSensor(sensor_id)
+        if country == None:
+            country, state, city = h.get_country_info(first_sensor[3], first_sensor[4])
         sensor = Sensor(first_sensor[0], first_sensor[1], country, state, city,first_sensor[3], first_sensor[4])
+
     for row in my_list[1:]:
         assert(row[0] == first_sensor[0] and row[1] == first_sensor[1] and row[2] == first_sensor[2] and row[3] == first_sensor[3] and row[4] == first_sensor[4])
-        new_datapoint = SensorData(row[5], row[6], row[7], row[8], row[9], row[10])
-        sensor.addDatapoint(new_datapoint)
+        sensor.addDatapoint(row[5], row[6], row[7], row[8], row[9], row[10])
         print(row)
 
     return sensor
@@ -93,6 +96,7 @@ class SensorEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, (datetime.date, datetime.datetime)):
             return o.isoformat()
+
         return o.__dict__
 
 
@@ -106,39 +110,44 @@ def calculateStepSize(from_time : datetime.datetime, to_time : datetime.datetime
 
 def saveSensor(sensor_object : Sensor, day):
 
+    sensor_copy = copy.copy(sensor_object)
     global ZIP_MODE
 
     if not os.path.exists(local_path + day): # if folder nox exists, create it
         Path(local_path + day).mkdir(parents=True, exist_ok=True)
 
-    filename = buildLocalPath(sensor_object.id, sensor_object.type, day)
+    filename = buildLocalPath(sensor_copy.id, sensor_copy.type, day)
     if os.path.exists(filename):
         return
 
+    df = sensor_copy.dataFrame.to_json(orient="records")
+    sensor_copy.dataFrame = json.loads(df)
     if ZIP_MODE:
         with gzip.open(filename, 'wt', encoding='utf-8') as file:
-            json.dump(sensor_object, file, ensure_ascii=False, indent=2, cls=SensorEncoder)
+            json.dump(sensor_copy, file, ensure_ascii=False, indent=2, cls=SensorEncoder)
     else:
         with open(filename, 'w', encoding='utf-8') as file:
-            json.dump(sensor_object, file, ensure_ascii=False, indent=2, cls=SensorEncoder)
+            json.dump(sensor_copy, file, ensure_ascii=False, indent=2, cls=SensorEncoder)
 
 def reduceDatatoStepSize(sensor : Sensor, step_size_minutes : int):
-    sensor_data = sensor.dataList
-    time_of_last = sensor_data[0].timestamp
+    sensor_data = sensor.dataFrame
+    time_of_last = sensor_data.iloc[0]['timestamp']
 
-    i = 1 # to remove
-    for current_data in sensor_data[:]:
-        if current_data == sensor_data[0]:
+    time_of_last = datetime.datetime.strptime(time_of_last, '%Y-%m-%dT%H:%M:%S')
+
+    for i,row in sensor_data.iterrows():
+        time_of_current = row['timestamp']
+        time_of_current = datetime.datetime.strptime(time_of_current, '%Y-%m-%dT%H:%M:%S')
+        if time_of_current == time_of_last:
             continue
         time_of_next = time_of_last + datetime.timedelta(hours=0, minutes=step_size_minutes, seconds=0)
-        if current_data.timestamp < time_of_next:
-            sensor_data.pop(i)
-            i -= 1
-        else:
-            time_of_last = current_data.timestamp
-        i += 1
 
-    assert len(sensor_data) <= 100 # or David has done the calculation wrong (again)
+        if time_of_current < time_of_next:
+            sensor_data.drop(i, inplace=True)
+        else:
+            time_of_last = time_of_current
+
+    assert len(sensor_data.index) <= 100 # or David has done the calculation wrong (again)
     pass
 
 # from_time and to_time are date_time objects

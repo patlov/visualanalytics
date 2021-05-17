@@ -111,6 +111,17 @@ def addCountriesToSensorList():
     exportSensorsDict(sensors_dict_export)
     pass
 
+def getCountryOfSensor(sensor_id):
+    if isInt(sensor_id):
+        sensor_id = str(sensor_id)
+    sensors = getSensorsJson()
+    if sensor_id not in sensors.keys():
+        return None,None,None
+    country = sensors[sensor_id][1]
+    state = sensors[sensor_id][2]
+    city = sensors[sensor_id][3]
+    return country, state, city
+
 def getCSVFiles():
     with open('database/csv_files.json', "r") as jsonFile:
         data = json.load(jsonFile)

@@ -3,6 +3,7 @@
 import datetime
 from enum import Enum
 import json
+import pandas as pd
 
 # sensor types : bme280 bmp180 ssds011 dht22
 
@@ -12,41 +13,6 @@ class SensorType(str, Enum):
     ssds011: str = "ssds011"
     dht22: str = "dht22"
 
-
-
-class SensorData:
-    def __init__(self, timestamp : datetime, pressure :float, altitude, pressure_sealevel, temperature : float, humidity : float):
-
-
-        self.timestamp = datetime.datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S")
-
-        if pressure != '':
-            self.pressure = float(pressure)
-        else:
-            self.pressure = 'NA'
-
-        if altitude != '':
-            self.altitude = float(altitude)
-        else:
-            self.altitude = 'NA'
-
-        if pressure_sealevel != '':
-            self.pressure_sealevel = float(pressure_sealevel)
-        else :
-            self.pressure_sealevel = 'NA'
-
-        if humidity != '':
-            self.humidity = float(humidity)
-        else:
-            self.humidity = 'NA'
-
-        if temperature != '':
-            self.temperature = float(temperature)
-        else:
-            self.temperature = 'NA'
-
-    def toJson(self):
-        return json.dumps(self, default=lambda o: o.__dict__, indent=2, ensure_ascii=False)
 
 
 class Sensor:
@@ -74,10 +40,12 @@ class Sensor:
         else:
             self.lat = 'NA'
 
-        self.dataList = []
+        self.dataFrame = pd.DataFrame()
 
-    def addDatapoint(self, datapoint : SensorData):
-        self.dataList.append(datapoint)
+    def addDatapoint(self, timestamp : datetime, pressure :float, altitude, pressure_sealevel, temperature : float, humidity : float):
+        row = {'timestamp':timestamp, 'pressure':pressure, 'altitude':altitude, 'pressure_sealevel':pressure_sealevel, 'temperature':temperature, 'humidity': humidity}
+        self.dataFrame = self.dataFrame.append(row, ignore_index=True)
+        pass
 
 
     def toJson(self):
