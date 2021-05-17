@@ -5,6 +5,7 @@ from downloadDatabase import getCSVFileNamesInFolder
 import json
 import here as h
 import sys
+import pathlib
 from datetime import datetime
 
 
@@ -152,7 +153,9 @@ def exportCountriesJson(countries_dict):
 def printToErrorLog(sensor_id, reason = None):
     error_file = open("database/error_log.txt", "a")
     now = datetime.now()
-    error_file.write(now.strftime("%H:%M:%S") + "  " + str(sensor_id) + " : maybe a issue with lon lat\n")
+    error_file.write(now.strftime("%d-%m-%Y %H:%M:%S") + "  sensor: " + str(sensor_id) + " | reason: " + str(reason) + "\n")
+    error_file.close()
+
 
 def printToLog(sensor_id, reason = None):
     error_file = open("database/sensor_log.txt", "a")

@@ -47,6 +47,10 @@ class Sensor:
         self.dataFrame = self.dataFrame.append(row, ignore_index=True)
         pass
 
+    def addDatapoints(self, rows):
+        self.dataFrame = self.dataFrame.append(rows, ignore_index=True)
+        pass
+
 
     def toJson(self):
         return json.dumps(self, default=lambda o: o.__dict__, indent=2, ensure_ascii=False)
