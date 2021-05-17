@@ -31,7 +31,6 @@ def getSensorType(sensor_id):
     if sensor_id not in data:
         print("error, sensor " + str(sensor_id) + " is not in list")
         return
-
     return data[sensor_id][0]
 
 
@@ -65,8 +64,8 @@ def firstLineValid(header):
 
 
 def getDataOfOneDay(sensor_id, sensor_type, date, sensor=None):
-
-    assert(sensor == None or sensor_id == sensor.id)
+    # ??????
+    # assert(sensor == None or sensor_id == sensor.id)
 
     csv_filename = buildCSVurl(sensor_id, sensor_type, date)
     content = getCSVContent(csv_filename)
