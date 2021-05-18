@@ -22,6 +22,7 @@ country_path = "database/country_sensors.json"
 
 # if true, we save the json files in zipped mode, if false its in plaintext json
 ZIP_MODE = True
+CACHING = False
 
 def getSensorType(sensor_id):
     if isinstance(sensor_id, int):
@@ -186,14 +187,15 @@ def getData(sensor_id, from_time : datetime.datetime, to_time : datetime.datetim
         current_date_string = current_time.strftime("%Y-%m-%d")
 
         # check if its in cache
-        local_path = buildLocalPath(sensor_id, sensor_type, current_date_string)
-        tmp_sensor, data_points = dataManagement.getSensorFromCache(local_path)
-        if not tmp_sensor == None: # found in cache
-            if requested_sensor == None:
-                requested_sensor = tmp_sensor
-            requested_sensor.addDatapoints(data_points)
-            current_time += timedelta(days=1)
-            continue
+        if CACHING:
+            local_path = buildLocalPath(sensor_id, sensor_type, current_date_string)
+            tmp_sensor, data_points = dataManagement.getSensorFromCache(local_path)
+            if not tmp_sensor == None: # found in cache
+                if requested_sensor == None:
+                    requested_sensor = tmp_sensor
+                requested_sensor.addDatapoints(data_points)
+                current_time += timedelta(days=1)
+                continue
 
         # not in cache - crawl from website
         csv_filename = buildCSVurl(sensor_id, sensor_type, current_date_string)
@@ -205,7 +207,8 @@ def getData(sensor_id, from_time : datetime.datetime, to_time : datetime.datetim
                 requested_sensor = tmp_sensor
             if not requested_sensor == None and not len(data_points) == 0:
                 requested_sensor.addDatapoints(data_points)
-                saveSensor(requested_sensor, data_points, current_time)  # todo create thread for push into local database (cache)
+                if CACHING:
+                    saveSensor(requested_sensor, data_points, current_time)  # todo create thread for push into local database (cache)
 
         current_time += timedelta(days=1)
 

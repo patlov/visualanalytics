@@ -14,7 +14,6 @@ class TestCluster(unittest.TestCase):
         to_time = datetime.datetime(2021, 4, 3)
         os.chdir('../')
         sensors = a.get_geo_info("DEU", "Bayern", "Dachau")
-
         sensor_list = []
         for sensor_id in sensors:
             sensor = a.getSensorData(sensor_id, from_time, to_time)
