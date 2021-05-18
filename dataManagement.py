@@ -7,7 +7,7 @@ import here as h
 import sys
 import pathlib
 from datetime import datetime
-
+from classes import *
 
 def isInt(s):
     try:
@@ -128,6 +128,10 @@ def getCSVFiles():
         data = json.load(jsonFile)
     return data
 
+def localFileExists(filepath):
+    if os.path.exists(filepath):
+        return True
+    return False
 
 def exportSensorsDict(sensors_dict):
     with open('database/sensors.json', "w", encoding='utf-8') as jsonFile:
@@ -149,17 +153,28 @@ def exportCountriesJson(countries_dict):
     with open('database/country_sensors.json', "w", encoding='utf-8') as jsonFile:
         json.dump(countries_dict, jsonFile, ensure_ascii=False, indent=2)
 
+
+def getSensorFromCache(path):
+    if localFileExists(path):
+        print(path)
+        with open(path, "r") as jsonFile:
+            data = json.load(jsonFile)
+        sensor = Sensor(data['id'], data['type'], data['country'], data['state'], data['city'], data['long'], data['lat'])
+        return sensor, data['dataFrame']
+    else:
+        return None, []
+
 #---------------------------------------------------------------------------------------------------------
 def printToErrorLog(sensor_id, reason = None):
     error_file = open("database/error_log.txt", "a")
-    now = datetime.now()
+    now = datetime.datetime.now()
     error_file.write(now.strftime("%d-%m-%Y %H:%M:%S") + "  sensor: " + str(sensor_id) + " | reason: " + str(reason) + "\n")
     error_file.close()
 
 
 def printToLog(sensor_id, reason = None):
     error_file = open("database/sensor_log.txt", "a")
-    now = datetime.now()
+    now = datetime.datetime.now()
     error_file.write(now.strftime("%H:%M:%S") + "  " + str(sensor_id) + reason + "\n")
 
 def crawlCountriesToJson():

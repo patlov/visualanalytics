@@ -51,7 +51,7 @@ def buildLocalPath(sensor_id, sensor_type, day):
     return local_path + day + "/" + buildFilename(sensor_id, sensor_type, day) + ".json"
 
 def buildFilename(sensor_id, sensor_type, day):
-    return day + "_" + str(sensor_type) + "_sensor_" + str(sensor_id)
+    return day + "_" + str(sensor_type).upper() + "_sensor_" + str(sensor_id)
 
 
 def checkFileFormat(header):
@@ -66,9 +66,7 @@ def checkFileFormat(header):
     return True
 
 
-def getDataOfOneDay(sensor_id, sensor_type, date, sensor=None):
-
-    csv_filename = buildCSVurl(sensor_id, sensor_type, date)
+def getDataOfOneDay(sensor_id, csv_filename, sensor=None):
 
     try:
         content = getCSVContent(csv_filename)
@@ -131,7 +129,7 @@ def saveSensor(sensor_object : Sensor, dataPoints : list,  day : datetime.dateti
         Path(local_path + day).mkdir(parents=True, exist_ok=True)
 
     filename = buildLocalPath(tmp_sensor.id, tmp_sensor.type, day)
-    if os.path.exists(filename):
+    if dataManagement.localFileExists(filename):
         return
 
     df = tmp_sensor.dataFrame.to_json(orient="records")
@@ -142,6 +140,7 @@ def saveSensor(sensor_object : Sensor, dataPoints : list,  day : datetime.dateti
     else:
         with open(filename, 'w', encoding='utf-8') as file:
             json.dump(tmp_sensor, file, ensure_ascii=False, indent=2, cls=SensorEncoder)
+
 
 def reduceDatatoStepSize(sensor : Sensor, step_size_minutes : int):
     sensor_data = sensor.dataFrame
@@ -178,24 +177,35 @@ def getData(sensor_id, from_time : datetime.datetime, to_time : datetime.datetim
         to_time += timedelta(days=1)
     if from_time > to_time:
         raise ValueError("from_time must be smaller than to_time")
-    # todo check if in cache
+
 
     #  crawl data
     current_time = from_time
     requested_sensor = None
     while(current_time < to_time):
-        current_time_string = current_time.strftime("%Y-%m-%d")
+        current_date_string = current_time.strftime("%Y-%m-%d")
+
+        # check if its in cache
+        local_path = buildLocalPath(sensor_id, sensor_type, current_date_string)
+        tmp_sensor, data_points = dataManagement.getSensorFromCache(local_path)
+        if not tmp_sensor == None: # found in cache
+            if requested_sensor == None:
+                requested_sensor = tmp_sensor
+            requested_sensor.addDatapoints(data_points)
+            current_time += timedelta(days=1)
+            continue
+
+        # not in cache - crawl from website
+        csv_filename = buildCSVurl(sensor_id, sensor_type, current_date_string)
         if current_time == from_time:
-            requested_sensor, data_points = getDataOfOneDay(sensor_id, sensor_type, current_time_string)
+            requested_sensor, data_points = getDataOfOneDay(sensor_id, csv_filename)
         else:
-            tmp_sensor, data_points = getDataOfOneDay(sensor_id, sensor_type, current_time_string, requested_sensor)
+            tmp_sensor, data_points = getDataOfOneDay(sensor_id, csv_filename, requested_sensor)
             if not tmp_sensor == None:
                 requested_sensor = tmp_sensor
             if not requested_sensor == None and not len(data_points) == 0:
                 requested_sensor.addDatapoints(data_points)
-                # todo create thread for push into local database (cache)
-                saveSensor(requested_sensor, data_points, current_time)
-
+                saveSensor(requested_sensor, data_points, current_time)  # todo create thread for push into local database (cache)
 
         current_time += timedelta(days=1)
 
