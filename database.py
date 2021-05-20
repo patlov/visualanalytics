@@ -94,7 +94,27 @@ def getDataOfOneDay(sensor_id, csv_filename, sensor=None):
     for row in my_list[1:]:
         if not (row[0] == first_sensor[0] and row[1] == first_sensor[1] and row[2] == first_sensor[2] and row[3] == first_sensor[3] and row[4] == first_sensor[4]):
             raise NameError("Entry " + str(row) + "  not in same format as first line: " + str(first_sensor))
-        dataPoints.append({'timestamp':row[5], 'pressure':row[6], 'altitude':row[7], 'pressure_sealevel':row[8], 'temperature':row[9], 'humidity': row[10]})
+        if row[6] != '':
+            pressure = float(row[6])
+        else:
+            pressure = 0
+        if row[7] != '':
+            altitude = float(row[7])
+        else:
+            altitude = 0
+        if row[8] != '':
+            pressure_sealevel = float(row[8])
+        else:
+            pressure_sealevel = 0
+        if row[9] != '':
+            temperature = float(row[9])
+        else:
+            temperature = 0
+        if row[10] != '':
+            humidity = float(row[10])
+        else:
+            humidity = 0
+        dataPoints.append({'timestamp':row[5], 'pressure':pressure, 'altitude':altitude, 'pressure_sealevel':pressure_sealevel, 'temperature':temperature, 'humidity': humidity})
 
     return sensor, dataPoints
 
