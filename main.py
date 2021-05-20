@@ -95,9 +95,6 @@ def set_city_options(selected_id):
     Input('type_of_measurement_id', 'value')
 )
 def timeseries_update(from_time, to_time, viable_sensor_id, sensor_typ, type_of_measurement):
-    # always select every field, otherwise it wont react
-    global df
-    fig = px.line(df, x='timestamp', y='temperature')
     if viable_sensor_id is not None and type_of_measurement is not None:
         start_time = datetime.strptime(from_time, '%Y-%m-%d')
         end_time = datetime.strptime(to_time, '%Y-%m-%d')
@@ -115,7 +112,7 @@ def timeseries_update(from_time, to_time, viable_sensor_id, sensor_typ, type_of_
         df = pd.json_normalize(sens_data, 'dataList', ['id', 'type'])
         fig1 = px.line(df, x='timestamp', y=type_of_measurement)
         return fig1
-    return fig
+    return {}
 
 
 # Worldmap

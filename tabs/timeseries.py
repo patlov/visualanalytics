@@ -28,8 +28,7 @@ layout = html.Div([
                 date=datetime.today()
             )
         ]),
-        html.Br(),
-        html.Label([
+         html.Label([
             "To time:",
             dcc.DatePickerSingle(
                 id='to_time_id',
