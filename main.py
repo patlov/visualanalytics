@@ -16,12 +16,6 @@ import json
 
 app = dash.Dash()
 
-####################################################################
-# testing purposes here ####
-with open('database/2021-02-01/2021-02-01_BME280_sensor_141.json') as data_file:
-    data = json.load(data_file)
-df = pd.json_normalize(data, 'dataList', ['id', 'type'])
-#####################################################################
 with open('database/country_sensors.json', 'r') as file:
     country_sens = json.load(file)
 
