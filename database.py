@@ -21,8 +21,8 @@ sensors_path = "database/sensors.json"
 country_path = "database/country_sensors.json"
 
 # if true, we save the json files in zipped mode, if false its in plaintext json
-ZIP_MODE = True
-CACHING = False
+ZIP_MODE = False
+CACHING = True
 
 def getSensorType(sensor_id):
     if isinstance(sensor_id, int):
@@ -52,7 +52,7 @@ def buildLocalPath(sensor_id, sensor_type, day):
     return local_path + day + "/" + buildFilename(sensor_id, sensor_type, day) + ".json"
 
 def buildFilename(sensor_id, sensor_type, day):
-    return day + "_" + str(sensor_type).upper() + "_sensor_" + str(sensor_id)
+    return day + "_" + str(sensor_type).lower() + "_sensor_" + str(sensor_id)
 
 
 def checkFileFormat(header):
