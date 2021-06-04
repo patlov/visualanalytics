@@ -2,6 +2,7 @@ import database
 import dataManagement
 import itertools
 import pandas as pd
+from datetime import *
 from multiprocessing import Pool
 from classes import Sensor
 from utils import get_sensor_urls, unnest_dicts, safe_get, download_wrapper
@@ -35,17 +36,36 @@ def download_sensors(sensor_ids, from_time, to_time):
 
     sensors = []
 
+    step_size_minutes = database.calculateStepSize(from_time, to_time)
+
     for sensor_id in d.keys():
         dfs = d[sensor_id]
+        ts = [(datetime.strptime(dfs[i].timestamp[0], '%Y-%m-%dT%H:%M:%S'), i) for i in range(len(dfs))]
+        ts = sorted(ts, key=lambda tup: tup[0])
+        dfs = [dfs[t[1]] for t in ts]
+
         df = pd.concat(dfs, ignore_index=True)
+        lat, lon, sensor_type = df.lat[0], df.lon[0], df.sensor_type[0]
+
         df = df.dropna(axis=1, how='all')
-        dropped_df = df.drop(['sensor_id', 'sensor_type', 'lat', 'lon', 'location'], axis=1)
+        df.timestamp = pd.to_datetime(df.timestamp)
+        df = df.set_index('timestamp')
+        old_df = df.copy()
+        df = df.resample(f"{step_size_minutes}min").ffill()
+        df = df.drop(['sensor_id', 'sensor_type', 'lat', 'lon', 'location'], axis=1)
+
+        # import matplotlib.pyplot as plt
+        # plt.plot(old_df.index, old_df.temperature, label='original')
+        # plt.plot(df.index, df.temperature, label=f'resample pandas {step_size_minutes} min.')
+        # plt.legend()
+        # plt.grid()
+        # plt.show()
+
         country, state, city = dataManagement.getCountryOfSensor(sensor_id)
-        lat = df.lat[0]
-        lon = df.lon[0]
         if country == None:
             country, state, city = h.get_country_info(lat, lon)
-        sensors.append(Sensor(sensor_id, df.sensor_type[0], country, state, city, lat, lon, dropped_df))
+        s = Sensor(sensor_id, sensor_type, country, state, city, lat, lon, df)
+        sensors.append(s)
 
     return sensors
 

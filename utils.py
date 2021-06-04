@@ -39,7 +39,7 @@ def get_cache(csv_filename):
     date = split[3]
     file_name = split[4]
 
-    folder = f"database/{date}"
+    folder = f"database/cache/{date}"
     path = folder + '/' + file_name
     content = None
 
@@ -54,7 +54,7 @@ def write_cache(csv_filename, content):
     date = split[3]
     file_name = split[4]
 
-    folder = f"database/{date}"
+    folder = f"database/cache/{date}"
     if not os.path.isdir(folder):
         os.mkdir(folder)
 
