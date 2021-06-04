@@ -5,22 +5,26 @@ import os
 import datetime
 
 class TestCluster(unittest.TestCase):
-    def test_basic_cluster(self):
-        sensors = a.get_geo_info("AUT", "Steiermark", "Graz")
-        pass
-
-    def test_get_many_sensors(self):
+    def test_graz_sensors(self):
         from_time = datetime.datetime(2021, 3, 1)
-        to_time = datetime.datetime(2021, 4, 3)
-        os.chdir('../')
-        sensors = a.get_geo_info("DEU", "Bayern", "Dachau")
-        sensor_list = []
-        for sensor_id in sensors:
-            sensor = a.getSensorData(sensor_id, from_time, to_time)
-            if not sensor == None:
-                sensor_list.append(sensor)
+        to_time = datetime.datetime(2021, 3, 3)
+        sensors = a.get_geo_info("AUT", "Steiermark", "Graz", return_cities=True)
+        sensor_list = a.download_sensors(sensors, from_time, to_time)
+        self.assertEqual(len(sensor_list), 77)
 
-        pass
+    def test_styria_sensors(self):
+        from_time = datetime.datetime(2021, 3, 1)
+        to_time = datetime.datetime(2021, 3, 3)
+        sensors = a.get_geo_info("AUT", "Steiermark", return_cities=True)
+        sensor_list = a.download_sensors(sensors, from_time, to_time)
+        self.assertEqual(len(sensor_list), 159)
+
+    def test_austria_sensors(self):
+        from_time = datetime.datetime(2021, 3, 1)
+        to_time = datetime.datetime(2021, 3, 3)
+        sensors = a.get_geo_info("AUT", return_cities=True)
+        sensor_list = a.download_sensors(sensors, from_time, to_time)
+        self.assertEqual(len(sensor_list), 642)
 
 if __name__ == '__main__':
     unittest.main()

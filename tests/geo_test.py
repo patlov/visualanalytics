@@ -6,6 +6,22 @@ class TestGeo(unittest.TestCase):
         sensors = a.get_geo_info()
         self.assertEqual(len(sensors), 80)
 
+    def test_all_geo(self):
+        sensors = a.get_geo_info(return_cities=True)
+        self.assertEqual(len(sensors), 27631)
+
+    def test_all_contry_geo(self):
+        sensors = a.get_geo_info("AUT", return_cities=True)
+        self.assertEqual(len(sensors), 724)
+
+    def test_all_state_geo(self):
+        sensors = a.get_geo_info("AUT", "Steiermark", return_cities=True)
+        self.assertEqual(len(sensors), 172)
+
+    def test_all_city_geo(self):
+        sensors = a.get_geo_info("AUT", "Steiermark", "Graz", return_cities=True)
+        self.assertEqual(len(sensors), 89)
+
     def test_one_geo(self):
         sensors = a.get_geo_info("AUT")
         self.assertEqual(len(sensors), 9)

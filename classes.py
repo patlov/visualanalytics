@@ -16,7 +16,7 @@ class SensorType(str, Enum):
 
 
 class Sensor:
-    def __init__(self, id : int, type : SensorType, country : str, state : str, city : str, lat : float, long : float):
+    def __init__(self, id : int, type : SensorType, country : str, state : str, city : str, lat : float, long : float, df=pd.DataFrame()):
 
         if id != '':
             self.id = int(id)
@@ -40,7 +40,7 @@ class Sensor:
         else:
             self.lat = 'NA'
 
-        self.dataFrame = pd.DataFrame()
+        self.dataFrame = df
 
     def addDatapoint(self, timestamp : datetime, pressure :float, altitude, pressure_sealevel, temperature : float, humidity : float):
         row = {'timestamp':timestamp, 'pressure':pressure, 'altitude':altitude, 'pressure_sealevel':pressure_sealevel, 'temperature':temperature, 'humidity': humidity}
