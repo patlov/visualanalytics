@@ -59,11 +59,20 @@ class TestCluster(unittest.TestCase):
     def test_all_states(self):
         from_time = datetime.datetime(2021, 3, 1)
         to_time = datetime.datetime(2021, 3, 3)
+        sensors = a.get_state_sensors(num_cities=1)
+        sensor_list = a.download_sensors(sensors, from_time, to_time)
+        result = cluster_ts(sensor_list, 'temperature', 5, -50, 50)
+        self.assertEqual(len(sensors), 443)
+        self.plot_cluster(result, sensor_list, 'temperature')
+
+    def test_aaa_states(self):
+        from_time = datetime.datetime(2021, 3, 1)
+        to_time = datetime.datetime(2021, 3, 3)
         sensors = a.get_state_sensors(num_cities=1, countries=["DEU", "AUT", "ITA"])
         sensor_list = a.download_sensors(sensors, from_time, to_time)
-        result = cluster_ts(sensor_list, 'temperature', 4, -50, 50)
+        result = cluster_ts(sensor_list, 'temperature', 5, -50, 50)
         self.assertEqual(len(sensors), 43)
-        # self.plot_cluster(result, sensor_list, 'temperature')
+        self.plot_cluster(result, sensor_list, 'temperature')
 
 if __name__ == '__main__':
     unittest.main()
