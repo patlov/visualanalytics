@@ -6,6 +6,7 @@ from datetime import *
 from multiprocessing import Pool
 from classes import Sensor
 from utils import get_sensor_urls, unnest_dicts, safe_get, download_wrapper
+from preprocess import cleanup_dataframe
 
 def download_sensors(sensor_ids, from_time, to_time):
     file_names = []
@@ -34,44 +35,37 @@ def download_sensors(sensor_ids, from_time, to_time):
 
         d[k].append(v)
 
-    sensors = []
+    sensors = {}
 
     step_size_minutes = database.calculateStepSize(from_time, to_time)
 
     for sensor_id in d.keys():
         dfs = d[sensor_id]
-        ts = [(datetime.strptime(dfs[i].timestamp[0], '%Y-%m-%dT%H:%M:%S'), i) for i in range(len(dfs))]
-        ts = sorted(ts, key=lambda tup: tup[0])
-        dfs = [dfs[t[1]] for t in ts]
-
-        df = pd.concat(dfs, ignore_index=True)
-        lat, lon, sensor_type = df.lat[0], df.lon[0], df.sensor_type[0]
-
-        df = df.dropna(axis=1, how='all')
-        df.timestamp = pd.to_datetime(df.timestamp)
-        df = df.set_index('timestamp')
-        old_df = df.copy()
-        df = df.resample(f"{step_size_minutes}min").ffill()
-        df = df.drop(['sensor_id', 'sensor_type', 'lat', 'lon', 'location'], axis=1)
-
-        # import matplotlib.pyplot as plt
-        # plt.plot(old_df.index, old_df.temperature, label='original')
-        # plt.plot(df.index, df.temperature, label=f'resample pandas {step_size_minutes} min.')
-        # plt.legend()
-        # plt.grid()
-        # plt.show()
-
+        sensor_type, lat, lon, df = cleanup_dataframe(dfs, step_size_minutes)
         country, state, city = dataManagement.getCountryOfSensor(sensor_id)
+
         if country == None:
             country, state, city = h.get_country_info(lat, lon)
         s = Sensor(sensor_id, sensor_type, country, state, city, lat, lon, df)
-        sensors.append(s)
+        sensors[sensor_id] = s
 
     return sensors
 
-def get_geo_info(country=None, state=None, city=None, return_cities=False):
+def get_state_sensors(countries=None, num_cities=1):
+    countries_dict = dataManagement.getCountriesJson()
+    sensors = []
+
+    if not countries:
+        countries = list(countries_dict.keys())
+
+    for k in countries:
+        sensors.extend(get_geo_info(k, return_cities=True, num_cities=num_cities))
+
+    return sensors
+
+def get_geo_info(country=None, state=None, city=None, return_cities=False, sensor_per_city=None, num_cities=None):
     countries_dict = dataManagement.getCountriesJson()
     elems = [country, state, city]
-    result = safe_get(countries_dict, elems, return_cities)
+    result = safe_get(countries_dict, elems, return_cities, sensor_per_city, num_cities)
 
     return result

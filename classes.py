@@ -17,7 +17,6 @@ class SensorType(str, Enum):
 
 class Sensor:
     def __init__(self, id : int, type : SensorType, country : str, state : str, city : str, lat : float, long : float, df=pd.DataFrame()):
-
         if id != '':
             self.id = int(id)
         else:

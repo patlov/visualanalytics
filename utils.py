@@ -3,18 +3,29 @@ import pandas as pd
 from io import StringIO
 from datetime import *
 import os
+from random import sample
 
 import database
 import dataManagement
 
-def unnest_dicts(d):
-  for v in d.values():
-    if isinstance(v, dict):
-      yield from unnest_dicts(v)
-    else:
-      yield v
+def unnest_dicts(d, max_vals):
+    for v in d.values():
+        if isinstance(v, dict):
+            yield from unnest_dicts(v, max_vals)
+        else:
+            if max_vals and max_vals < len(v):
+                yield v[:max_vals]
+            else:
+                yield v
 
-def safe_get(dc, elems, return_cities=False):
+def sample_dicts(d, num_elems):
+    if isinstance(d, dict):
+        n_key = sample(list(d.keys()), 1)[0]
+        yield from sample_dicts(d[n_key], num_elems)
+    else:
+        yield sample(d, min(len(d), num_elems))
+
+def safe_get(dc, elems, return_cities=False, sensor_per_city=None, num_cities=None):
     tmp_dc = dc
     for e in elems:
         if e and e in tmp_dc:
@@ -26,8 +37,17 @@ def safe_get(dc, elems, return_cities=False):
         if not return_cities:
             tmp_dc = list(tmp_dc.keys())
         else:
-            tmp_dc = list(unnest_dicts(tmp_dc))
-            tmp_dc = list(itertools.chain(*tmp_dc))
+            if not num_cities:
+                tmp_dc = list(unnest_dicts(tmp_dc, sensor_per_city))
+                tmp_dc = list(itertools.chain(*tmp_dc))
+            else:
+                results = []
+                for k in tmp_dc.keys():
+                    results.extend(list(sample_dicts(tmp_dc[k], num_cities)))
+
+                return [sl for l in results for sl in l]
+    elif num_cities:
+        tmp_dc = sample(tmp_dc, num_cities)
 
     return tmp_dc
 
@@ -73,7 +93,7 @@ def get_sensor_one_day(sensor_id, csv_filename):
         if not content:
             content = database.getCSVContent(csv_filename)
             write_cache(csv_filename, content)
-    except FileNotFoundError as e:
+    except Exception as e:
         write_cache(csv_filename, "INVALID")
         dataManagement.printToErrorLog(sensor_id, str(e))
         return sensor_id, None
