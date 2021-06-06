@@ -51,7 +51,7 @@ def download_sensors(sensor_ids, from_time, to_time):
 
     return sensors
 
-def get_state_sensors(countries=None, num_cities=1):
+def get_state_sensors(countries=None, type=None, num_cities=1):
     countries_dict = dataManagement.getCountriesJson()
     sensors = []
 
@@ -59,12 +59,28 @@ def get_state_sensors(countries=None, num_cities=1):
         countries = list(countries_dict.keys())
 
     for k in countries:
-        sensors.extend(get_geo_info(k, return_cities=True, num_cities=num_cities))
+        sensors.extend(get_sensors(k, return_cities=True, num_cities=num_cities, type=type))
 
     return sensors
 
-def get_geo_info(country=None, state=None, city=None, return_cities=False, sensor_per_city=None, num_cities=None):
+def unfold_types(countries_dict, type):
+    for c in countries_dict:
+        for s in countries_dict[c]:
+            for ct in countries_dict[c][s]:
+                types = countries_dict[c][s][ct]
+                types_to_parse = list(types)
+                if type:
+                    types_to_parse = type
+                res = []
+                for t in types_to_parse:
+                    if t in types:
+                        res.extend(types[t])
+                countries_dict[c][s][ct] = res
+    return countries_dict
+
+def get_sensors(country=None, state=None, city=None, type=None, return_cities=False, sensor_per_city=None, num_cities=None):
     countries_dict = dataManagement.getCountriesJson()
+    countries_dict = unfold_types(countries_dict, type)
     elems = [country, state, city]
     result = safe_get(countries_dict, elems, return_cities, sensor_per_city, num_cities)
 

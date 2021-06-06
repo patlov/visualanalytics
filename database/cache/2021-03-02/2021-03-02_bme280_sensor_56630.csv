@@ -1,0 +1,2 @@
+sensor_id;sensor_type;location;lat;lon;timestamp;pressure;altitude;pressure_sealevel;temperature;humidity
+56630;BME280;42502;40.732;-74.254;2021-03-02T23:31:14;101196.09;;;16.36;26.95

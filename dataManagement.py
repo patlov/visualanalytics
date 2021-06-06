@@ -177,6 +177,22 @@ def printToLog(sensor_id, reason = None):
     now = datetime.datetime.now()
     error_file.write(now.strftime("%H:%M:%S") + "  " + str(sensor_id) + reason + "\n")
 
+def sensor_type_countries_dict(sensors, countries_dict):
+    for c in countries_dict:
+        for s in countries_dict[c]:
+            for ct in countries_dict[c][s]:
+                d = {}
+                l = countries_dict[c][s][ct]
+                for se in l:
+                    if not se in sensors:
+                        continue
+                    s_type = sensors[se][0]
+                    if not s_type in d:
+                        d[s_type] = []
+                    d[s_type].append(se)
+                countries_dict[c][s][ct] = d
+    return countries_dict
+
 def crawlCountriesToJson():
     folder_url = 'http://archive.sensor.community/2021-05-10/'
     # csv_files = getCSVFileNamesInFolder(folder_url, ext)

@@ -1,0 +1,1 @@
+{"sensor_types": ["bme280", "bmp280", "dht22", "sds011", "undefined", "sps30", "ds18b20", "bmp180", "pms7003", "laerm", "pms5003", "sht31", "htu21d", "radiation", "ppd42ns", "pms6003", "hpm", "sht35", "sht30", "sht85", "pms1003", "pms3003", "sht11"]}
