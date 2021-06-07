@@ -165,6 +165,8 @@ def saveSensor(sensor_object : Sensor, dataPoints : list,  day : datetime.dateti
 
 def reduceDatatoStepSize(sensor : Sensor, step_size_minutes : int):
     sensor_data = sensor.dataFrame
+    if len(sensor_data) == 0:
+        raise ValueError("[ERROR] Sensor with no data inside")
     time_of_last = sensor_data.iloc[0]['timestamp']
 
     time_of_last = datetime.datetime.strptime(time_of_last, '%Y-%m-%dT%H:%M:%S')
