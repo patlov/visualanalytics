@@ -5,17 +5,20 @@ from dash.dependencies import Input, Output
 import pandas as pd
 import api as api
 import plotly.express as px
+import urllib.request, json
 
-absolute_path = "/home/pat/Desktop/University/Master/2_semester/visualanalytics"
-
-token = open(absolute_path + "/keys/mapbox_token").read()
+token = open("keys/mapbox_token").read()
 us_cities = pd.read_csv("https://raw.githubusercontent.com/plotly/datasets/master/us-cities-top-1k.csv")
 
-sensors = api.get_sensors(return_cities=True, num_cities=1)
-print("x")
+with urllib.request.urlopen("https://data.sensor.community/static/v2/data.json") as url:
+    sensor_json = json.loads(url.read().decode())
 
+sensor_norm = pd.json_normalize(sensor_json, record_path='sensordatavalues', meta=['timestamp', 'location'])
+sensor_loc = pd.json_normalize(sensor_norm['location'], meta=['latitude', 'longitude'])
+sensor_norm['latitude'] = sensor_loc['latitude'].astype(float)
+sensor_norm['longitude'] = sensor_loc['longitude'].astype(float)
 
-fig = px.density_mapbox(us_cities, lat="lat", lon="lon", z='Population', zoom=2, height=850)
+fig = px.density_mapbox(sensor_norm, lat="latitude", lon="longitude", z='value', zoom=2, height=850)
 fig.update_layout(mapbox_style="dark", mapbox_accesstoken=token)
 fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
 
