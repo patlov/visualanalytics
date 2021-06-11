@@ -27,7 +27,7 @@ CACHING = True
 def getSensorType(sensor_id):
     if isinstance(sensor_id, int):
         sensor_id = str(sensor_id)
-    with open(sensors_path, "r") as jsonFile:
+    with open(sensors_path, "r", encoding='utf-8') as jsonFile:
         data = json.load(jsonFile)
 
     if sensor_id not in data:
