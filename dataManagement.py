@@ -138,13 +138,13 @@ def exportSensorsDict(sensors_dict):
         json.dump(sensors_dict, jsonFile, ensure_ascii=False, indent=2)
 
 def getSensorsJson():
-    with open('database/sensors.json', "r") as jsonFile:
+    with open('database/sensors.json', "r", encoding='utf-8') as jsonFile:
         data = json.load(jsonFile)
     return data
 
 
 def getCountriesJson():
-    with open('database/country_sensors.json', "r") as jsonFile:
+    with open('database/country_sensors.json', "r", encoding='utf-8') as jsonFile:
         data = json.load(jsonFile)
     return data
 
