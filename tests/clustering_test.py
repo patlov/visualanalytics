@@ -57,7 +57,7 @@ class TestCluster(unittest.TestCase):
         sensor_list = a.download_sensors(sensors, from_time, to_time)
         result = cluster_ts(sensor_list, 'temperature', 4, MIN_TEMP, MAX_TEMP)
         self.assertEqual(len(sensors), 16)
-        # self.plot_cluster(result, sensor_list, 'temperature')
+        self.plot_cluster(result, sensor_list, 'temperature')
 
     def test_aaall_states(self):
         from_time = datetime.datetime(2021, 3, 1)

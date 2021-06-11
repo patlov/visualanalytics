@@ -12,7 +12,7 @@ import plotly.graph_objects as go
 from tabs import timeseries
 from tabs import worldmap
 from tabs import anomaly
-from tabs import overview
+from tabs import clustering
 from datetime import datetime
 import pandas as pd
 import json
@@ -28,12 +28,13 @@ app.layout = html.Div([
     html.H1('Visual Analytics - Climate data'),
     dcc.Tabs(id="tabs-example", value='tab-1-example', children=[
         dcc.Tab(label='Worldmap', value='worldmap'),
-        dcc.Tab(label='Overview', value='overview'),
+        dcc.Tab(label='Clustering', value='clustering'),
         dcc.Tab(label='Timeseries', value='timeseries'),
         dcc.Tab(label='Anomaly', value='anomaly')
     ]),
     html.Div(id='tabs-content-example')
 ])
+app.title = 'VA Climate Data Analysis 2021'
 
 
 @app.callback(Output('tabs-content-example', 'children'),
@@ -41,6 +42,8 @@ app.layout = html.Div([
 def render_content(tab):
     if tab == 'timeseries':
         return timeseries.layout
+    elif tab == 'clustering':
+        return clustering.layout
     elif tab == 'worldmap':
         return worldmap.layout
     elif tab == 'anomaly':
@@ -141,10 +144,33 @@ def timeseries_update(from_time, to_time, land, region, city, viable_sensor_id, 
 def page_2_radios(value):
     return 'You have selected "{}"'.format(value)
 
-# Anomaly update
-# update on timeseries tab
+# update on clustering tab
 @app.callback(
     Output('output-container-clustering', 'figure'),
+    Input('from_time_id', 'date'),
+    Input('to_time_id', 'date'),
+    Input('viable-sensor-id', 'value'),
+    Input('sensor_typ-dropdown', 'value'),
+    Input('type_of_measurement_id', 'value')
+)
+def clustering_update(from_time, to_time, viable_sensor_id, sensor_typ, type_of_measurement):
+    if viable_sensor_id is not None and type_of_measurement != '':
+        start_time = datetime.strptime(from_time, '%Y-%m-%d')
+        end_time = datetime.strptime(to_time, '%Y-%m-%d')
+
+        sensor_data = api.download_sensors(viable_sensor_id, start_time, end_time)
+
+        fig = make_subplots(rows=len(sensor_data), cols=1)
+        for idx in range(0, len(sensor_data)):
+            fig.add_trace(go.Line(x=sensor_data[viable_sensor_id[idx]].dataFrame.index,
+                                  y=sensor_data[viable_sensor_id[idx]].dataFrame[type_of_measurement],
+                                  name=(str(viable_sensor_id[idx]))), row=(idx+1), col=1)
+        return fig
+    return {}
+
+# update on anomaly tab
+@app.callback(
+    Output('output-container-anomaly', 'figure'),
     Input('from_time_id', 'date'),
     Input('to_time_id', 'date'),
     Input('viable-sensor-id', 'value'),
