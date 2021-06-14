@@ -11,7 +11,7 @@ absolute_path = "/home/pat/Desktop/University/Master/2_semester/visualanalytics"
 token = open("keys/mapbox_token").read()
 us_cities = pd.read_csv("https://raw.githubusercontent.com/plotly/datasets/master/us-cities-top-1k.csv")
 
-sensors = api.get_sensors(return_cities=True, num_cities=1)
+sensors = api.get_sensors(return_sensorids=True, num_sensors=1)
 print("x")
 
 

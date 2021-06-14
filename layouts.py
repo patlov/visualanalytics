@@ -75,12 +75,14 @@ layout_timeseries = html.Div([
 
 
 layout_clustering = html.Div([
-        html.H1("Clustering Tab", style={'text-align': 'center'}),
+        html.H1("Similarities", style={'text-align': 'center'}),
+        html.P("To find similar measurement we take one sensor of each region as sample and compare it with all other regions, "
+               "otherwise the clusters would be clustered by location (because close sensors will have the similar measurement"),
         html.Label([
             "From time:",
             dcc.DatePickerSingle(
                 id='from_time_id',
-                min_date_allowed=datetime(1995, 8, 5),
+                min_date_allowed=datetime(2015, 8, 5),
                 max_date_allowed=datetime.today(),
                 initial_visible_month=datetime.today(),
                 date=datetime.today()
@@ -90,40 +92,13 @@ layout_clustering = html.Div([
             "To time:",
             dcc.DatePickerSingle(
                 id='to_time_id',
-                min_date_allowed=datetime(1995, 8, 5),
+                min_date_allowed=datetime(2015, 8, 5),
                 max_date_allowed=datetime.today(),
                 initial_visible_month=datetime.today(),
                 date=datetime.today()
             ),
         ]),
         html.Br(),
-        html.Label([
-            "Land:",
-            dcc.Dropdown(
-                id='land-id',
-                options=[{'label': land, 'value': land} for land in country_sens],
-                value='',
-                multi=False
-            ),
-        ]),
-        html.Label([
-            "Region:",
-            dcc.Dropdown(id='region-id'),
-        ]),
-        html.Label([
-            "City:",
-            dcc.Dropdown(id='city-id'),
-        ]),
-        html.Label([
-            "SensorTyp:",
-            dcc.Dropdown(id='sensor_typ-dropdown'),
-        ]),
-        html.Label([
-            "SensorID:",
-            dcc.Dropdown(id='viable-sensor-id',
-                         multi=True),
-
-        ]),
         html.Label([
             "Type of Measurement:",
             dcc.Dropdown(
@@ -136,7 +111,14 @@ layout_clustering = html.Div([
                 multi=False
             ),
         ]),
-    ], style={'width': '25%'})
+        html.Label([
+            "Number of Clusters:",
+            dcc.Input(
+                id="nr_clusters", type="number", placeholder=4,
+                min=1, max=20, step=1
+            ),
+        ]),
+    ], style={'width': '25%', 'margin': 'auto'})
 
 
 layout_anomaly = html.Div([

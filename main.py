@@ -14,6 +14,7 @@ from tabs import worldmap
 from tabs import anomaly
 from tabs import clustering
 from datetime import datetime
+from clustering import cluster_ts
 import pandas as pd
 import json
 
@@ -149,24 +150,44 @@ def page_2_radios(value):
     Output('output-container-clustering', 'figure'),
     Input('from_time_id', 'date'),
     Input('to_time_id', 'date'),
-    Input('viable-sensor-id', 'value'),
-    Input('sensor_typ-dropdown', 'value'),
-    Input('type_of_measurement_id', 'value')
+    Input('type_of_measurement_id', 'value'),
+    Input('nr_clusters', 'value')
 )
-def clustering_update(from_time, to_time, viable_sensor_id, sensor_typ, type_of_measurement):
-    if viable_sensor_id is not None and type_of_measurement != '':
-        start_time = datetime.strptime(from_time, '%Y-%m-%d')
-        end_time = datetime.strptime(to_time, '%Y-%m-%d')
+def clustering_update(from_time, to_time, type_of_measurement, nr_clusters):
+    sensors = api.get_sensors(country='DEU',state='Bayern',sensor_per_city=1)
+    if type_of_measurement == '':
+        return {}
 
-        sensor_data = api.download_sensors(viable_sensor_id, start_time, end_time)
+    if nr_clusters == None:
+        nr_clusters = 4
+    sensor_types = []
+    if type_of_measurement == 'temperature' or type_of_measurement == 'humidity':
+        sensor_types.extend(['bme280', 'dht22', 'bmp280'])
+    else:
+        print("Invalid Sensor Type")
+        raise ValueError(type_of_measurement + " is a invalid type")
+        return {}
 
-        fig = make_subplots(rows=len(sensor_data), cols=1)
-        for idx in range(0, len(sensor_data)):
-            fig.add_trace(go.Line(x=sensor_data[viable_sensor_id[idx]].dataFrame.index,
-                                  y=sensor_data[viable_sensor_id[idx]].dataFrame[type_of_measurement],
-                                  name=(str(viable_sensor_id[idx]))), row=(idx+1), col=1)
-        return fig
-    return {}
+    start_time = datetime.strptime(from_time, '%Y-%m-%d')
+    end_time = datetime.strptime(to_time, '%Y-%m-%d')
+
+    sensor_ids = api.get_sensors("DEU", type=['bme280', 'dht22', 'bmp280'], return_sensorids=True, num_sensors=1)
+    sensor_data = api.download_sensors(sensor_ids, start_time, end_time)
+    sensor_ids = [*sensor_data]
+    MAX_TEMP = 50
+    MIN_TEMP = -50
+    result = cluster_ts(sensor_data, type_of_measurement, nr_clusters, MIN_TEMP, MAX_TEMP)
+
+    fig = make_subplots(rows=len(result), cols=1) # todo check plots
+    for idx in range(0, len(sensor_data)):
+        try:
+            fig.add_trace(go.Line(x=sensor_data[sensor_ids[idx]].dataFrame.index,
+                                  y=sensor_data[sensor_ids[idx]].dataFrame[type_of_measurement],
+                                  name=(str(sensor_ids[idx]))), row=(idx+1), col=1)
+        except KeyError:
+            continue
+    return fig
+
 
 # update on anomaly tab
 @app.callback(
