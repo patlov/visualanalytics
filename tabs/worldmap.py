@@ -5,20 +5,39 @@ from dash.dependencies import Input, Output
 import pandas as pd
 import api as api
 import plotly.express as px
-import urllib.request, json
+import json
+import aiohttp
+import asyncio
+
+
+# async way to get fast all sensors
+async def get(url):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            sensor_data = await response.read()
+            sensor_json = json.loads(sensor_data)
+            if len(sensor_json) > 0:
+                return sensor_json[0]
+
 
 token = open("keys/mapbox_token").read()
-us_cities = pd.read_csv("https://raw.githubusercontent.com/plotly/datasets/master/us-cities-top-1k.csv")
+sensor_per_city = api.get_sensors(return_sensors=True, num_sensors=1, type=['bme280', 'dht22', 'bmp280'])
 
-with urllib.request.urlopen("https://data.sensor.community/static/v2/data.json") as url:
-    sensor_json = json.loads(url.read().decode())
+loop = asyncio.get_event_loop()
+all_sensors = [get("https://data.sensor.community/airrohr/v1/sensor/" + sens_id + '/') for sens_id in sensor_per_city]
+results = loop.run_until_complete(asyncio.gather(*all_sensors))
 
-sensor_norm = pd.json_normalize(sensor_json, record_path='sensordatavalues', meta=['timestamp', 'location'])
-sensor_loc = pd.json_normalize(sensor_norm['location'], meta=['latitude', 'longitude'])
-sensor_norm['latitude'] = sensor_loc['latitude'].astype(float)
-sensor_norm['longitude'] = sensor_loc['longitude'].astype(float)
+# remove none types
+results = [i for i in results if i]
 
-fig = px.density_mapbox(sensor_norm, lat="latitude", lon="longitude", z='value', zoom=2, height=850)
+# adjust and create normalized dataframe out of the json list
+sensor_df = pd.json_normalize(results, record_path='sensordatavalues', meta=['timestamp', 'location'])
+sensor_loc = pd.json_normalize(sensor_df['location'], meta=['latitude', 'longitude'])
+sensor_df['latitude'] = sensor_loc['latitude'].astype(float)
+sensor_df['longitude'] = sensor_loc['longitude'].astype(float)
+
+fig = px.density_mapbox(sensor_df, hover_name='value_type', lat="latitude", lon="longitude", z='value', zoom=2,
+                        height=850)
 fig.update_layout(mapbox_style="dark", mapbox_accesstoken=token)
 fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
 
@@ -33,7 +52,7 @@ fig.update_layout(
                 "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}"
             ]
         }
-      ])
+    ])
 
 layout = html.Div([
     dcc.Graph(
