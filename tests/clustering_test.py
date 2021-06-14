@@ -57,12 +57,20 @@ class TestCluster(unittest.TestCase):
         sensor_list = a.download_sensors(sensors, from_time, to_time)
         result = cluster_ts(sensor_list, 'temperature', 4, MIN_TEMP, MAX_TEMP)
         self.assertEqual(len(sensors), 16)
-        self.plot_cluster(result, sensor_list, 'temperature')
+        # self.plot_cluster(result, sensor_list, 'temperature')
 
-    def test_aaall_states(self):
+    def test_all_states(self):
         from_time = datetime.datetime(2021, 3, 1)
         to_time = datetime.datetime(2021, 3, 3)
         sensors = a.get_state_sensors(num_cities=1, type=['bme280', 'dht22', 'bmp280'])
+        sensor_list = a.download_sensors(sensors, from_time, to_time)
+        result = cluster_ts(sensor_list, 'temperature', 5, MIN_TEMP, MAX_TEMP)
+        # self.plot_cluster(result, sensor_list, 'temperature')
+
+    def test_aaaall_cities(self):
+        from_time = datetime.datetime(2021, 3, 1)
+        to_time = datetime.datetime(2021, 3, 3)
+        sensors = a.get_sensors(return_sensors=True, sensor_per_city=1, type=['bme280', 'dht22', 'bmp280'])
         sensor_list = a.download_sensors(sensors, from_time, to_time)
         result = cluster_ts(sensor_list, 'temperature', 5, MIN_TEMP, MAX_TEMP)
         # self.plot_cluster(result, sensor_list, 'temperature')
@@ -75,27 +83,6 @@ class TestCluster(unittest.TestCase):
         result = cluster_ts(sensor_list, 'temperature', 5, MIN_TEMP, MAX_TEMP)
         self.assertEqual(len(sensors), 43)
         # self.plot_cluster(result, sensor_list, 'temperature')
-
-
-    def test_getSensors(self):
-        sensors = a.get_sensors(return_sensorids=True, num_sensors=1)
-        print('-------------------------\n', sensors)
-        sensors = a.get_sensors("DEU", return_sensorids=True)
-        print('-------------------------\n',sensors)
-        sensors = a.get_sensors("DEU", num_sensors=1)
-        print('-------------------------\n',sensors)
-        sensors = a.get_sensors("DEU", return_sensorids=True, type=['bme280', 'dht22', 'bmp280'])
-        print('-------------------------\n',sensors)
-        sensors = a.get_sensors("DEU", return_sensorids=True, num_sensors=2)
-        print('-------------------------\n',sensors)
-        sensors = a.get_sensors("DEU", return_sensorids=True, sensor_per_city=1)
-        print('-------------------------\n',sensors)
-
-        sensors = a.get_sensors("DEU", type=['bme280', 'dht22', 'bmp280'], num_sensors=1)
-        sensors = a.get_sensors("DEU", return_sensorids=True, num_sensors=1)
-        sensors = a.get_sensors("DEU", return_sensorids=True, num_sensors=1)
-        sensors = a.get_sensors("DEU", return_sensorids=True, num_sensors=1)
-
 
 if __name__ == '__main__':
     unittest.main()
