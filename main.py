@@ -151,11 +151,16 @@ def page_2_radios(value):
     Input('from_time_id', 'date'),
     Input('to_time_id', 'date'),
     Input('type_of_measurement_id', 'value'),
-    Input('nr_clusters', 'value')
+    Input('nr_clusters', 'value'),
+    Input('submit', 'n_clicks')
 )
-def clustering_update(from_time, to_time, type_of_measurement, nr_clusters):
-    sensors = api.get_sensors(country='DEU',state='Bayern',sensor_per_city=1)
-    if type_of_measurement == '':
+def clustering_update(from_time, to_time, type_of_measurement, nr_clusters, submit):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'submit' not in changed_id: # check if button was clicked
+        return {}
+    print("yes we clicked submit - lets go")
+    # submit button clicked
+    if type_of_measurement == None:
         return {}
 
     if nr_clusters == None:
@@ -171,21 +176,30 @@ def clustering_update(from_time, to_time, type_of_measurement, nr_clusters):
     start_time = datetime.strptime(from_time, '%Y-%m-%d')
     end_time = datetime.strptime(to_time, '%Y-%m-%d')
 
-    sensor_ids = api.get_sensors("DEU", type=['bme280', 'dht22', 'bmp280'], return_sensorids=True, num_sensors=1)
+    sensor_ids = api.get_sensors(return_sensors=True, num_sensors=1, type=['bme280', 'dht22', 'bmp280'])
     sensor_data = api.download_sensors(sensor_ids, start_time, end_time)
     sensor_ids = [*sensor_data]
     MAX_TEMP = 50
     MIN_TEMP = -50
     result = cluster_ts(sensor_data, type_of_measurement, nr_clusters, MIN_TEMP, MAX_TEMP)
 
-    fig = make_subplots(rows=len(result), cols=1) # todo check plots
-    for idx in range(0, len(sensor_data)):
+    df = px.data.gapminder().query("country=='Canada'")
+    df = px.data.stocks()
+    assert len(result) == nr_clusters
+    fig = make_subplots(rows=nr_clusters, cols=1)
+    for idx in range(0, nr_clusters):
         try:
-            fig.add_trace(go.Line(x=sensor_data[sensor_ids[idx]].dataFrame.index,
-                                  y=sensor_data[sensor_ids[idx]].dataFrame[type_of_measurement],
-                                  name=(str(sensor_ids[idx]))), row=(idx+1), col=1)
+            average_line = result[idx][0]
+            # fig.add_trace(go.Line(x=average_line, y=sensor_data[result[idx][1][0]].dataFrame[type_of_measurement].index, name="AVERAGE"), row=(idx+1), col=1)
+            # fig.add_trace(px.line(result, x="year", y="lf", title="title"))
+            for sensor in result[idx][1]:
+                series = sensor_data[sensor].dataFrame[type_of_measurement]
+                time_series = sensor_data[sensor].dataFrame[type_of_measurement].index
+                fig.add_trace(go.Line(x=time_series, y=series, name=str(sensor)), row=(idx+1), col=1)
         except KeyError:
             continue
+    new_height = 500 * nr_clusters
+    fig.update_layout(height=new_height, title_text="text")
     return fig
 
 

@@ -118,6 +118,7 @@ layout_clustering = html.Div([
                 min=1, max=20, step=1
             ),
         ]),
+        html.Button('Submit', id='submit', n_clicks=0),
     ], style={'width': '25%', 'margin': 'auto'})
 
 

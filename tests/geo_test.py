@@ -7,19 +7,19 @@ class TestGeo(unittest.TestCase):
         self.assertEqual(len(sensors), 80)
 
     def test_all_geo(self):
-        sensors = a.get_sensors(return_sensorids=True)
+        sensors = a.get_sensors(return_sensors=True)
         self.assertEqual(len(sensors), 27631)
 
     def test_all_contry_geo(self):
-        sensors = a.get_sensors("AUT", return_sensorids=True)
+        sensors = a.get_sensors("AUT", return_sensors=True)
         self.assertEqual(len(sensors), 724)
 
     def test_all_state_geo(self):
-        sensors = a.get_sensors("AUT", "Steiermark", return_sensorids=True)
+        sensors = a.get_sensors("AUT", "Steiermark", return_sensors=True)
         self.assertEqual(len(sensors), 172)
 
     def test_all_city_geo(self):
-        sensors = a.get_sensors("AUT", "Steiermark", "Graz", return_sensorids=True)
+        sensors = a.get_sensors("AUT", "Steiermark", "Graz", return_sensors=True)
         self.assertEqual(len(sensors), 89)
 
     def test_one_geo(self):

@@ -59,7 +59,7 @@ def get_state_sensors(countries=None, type=None, num_cities=1):
         countries = list(countries_dict.keys())
 
     for k in countries:
-        sensors.extend(get_sensors(k, return_sensorids=True, num_sensors=num_cities, type=type))
+        sensors.extend(get_sensors(k, return_sensors=True, num_sensors=num_cities, type=type))
 
     return sensors
 
@@ -78,10 +78,10 @@ def unfold_types(countries_dict, type):
                 countries_dict[c][s][ct] = res
     return countries_dict
 
-def get_sensors(country=None, state=None, city=None, type=None, return_sensorids=False, sensor_per_city=None, num_sensors=None):
+def get_sensors(country=None, state=None, city=None, type=None, return_sensors=False, sensor_per_city=None, num_sensors=None):
     countries_dict = dataManagement.getCountriesJson()
     countries_dict = unfold_types(countries_dict, type)
     elems = [country, state, city]
-    result = safe_get(countries_dict, elems, return_sensorids, sensor_per_city, num_sensors)
+    result = safe_get(countries_dict, elems, return_sensors, sensor_per_city, num_sensors)
 
     return result
