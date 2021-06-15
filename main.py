@@ -161,17 +161,17 @@ def clustering_update(from_time, to_time, type_of_measurement, nr_clusters, subm
     print("yes we clicked submit - lets go")
     # submit button clicked
     if type_of_measurement == None:
+        print("no type of measurement selected")
         return {}
 
-    if nr_clusters == None:
-        nr_clusters = 4
     sensor_types = []
     if type_of_measurement == 'temperature' or type_of_measurement == 'humidity':
         sensor_types.extend(['bme280', 'dht22', 'bmp280'])
     else:
         print("Invalid Sensor Type")
-        raise ValueError(type_of_measurement + " is a invalid type")
         return {}
+    if nr_clusters == None:
+        nr_clusters = 4
 
     start_time = datetime.strptime(from_time, '%Y-%m-%d')
     end_time = datetime.strptime(to_time, '%Y-%m-%d')
@@ -183,9 +183,9 @@ def clustering_update(from_time, to_time, type_of_measurement, nr_clusters, subm
     MIN_TEMP = -50
     result = cluster_ts(sensor_data, type_of_measurement, nr_clusters, MIN_TEMP, MAX_TEMP)
 
-    df = px.data.gapminder().query("country=='Canada'")
-    df = px.data.stocks()
-    assert len(result) == nr_clusters
+    if  len(result) != nr_clusters:
+        raise ValueError("Calculation Error with clusters")
+
     fig = make_subplots(rows=nr_clusters, cols=1)
     for idx in range(0, nr_clusters):
         try:
