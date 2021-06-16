@@ -5,6 +5,8 @@ import os
 import datetime
 from clustering import cluster_ts
 import matplotlib.pyplot as plt
+import pandas as pd
+import plotly.express as px
 
 MAX_TEMP = 50
 MIN_TEMP = -50
