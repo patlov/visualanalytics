@@ -16,9 +16,11 @@ from tabs import timeseries
 from tabs import worldmap
 from tabs import anomaly
 from tabs import clustering
+import dash_bootstrap_components as dbc
 
 # import warnings
 # warnings.filterwarnings('ignore')
+
 
 
 def find_time_series(average, cluster_result_sensors, sensor_data, type_of_measurement):
@@ -71,7 +73,7 @@ def clustering_logic(from_time, to_time, type_of_measurement, nr_clusters):
 
     fig = px.line(df, x='Time', y=type_of_measurement, color='Country', hover_name='City', line_group='City', facet_row='ClusterID')
 
-    fig.update_traces(patch={"line":{"color":"red", "width":3}},
+    fig.update_traces(patch={"line":{"color":"red", "width":4}},
                   selector={"legendgroup":"AVERAGE"})
 
     new_height = 500 * nr_clusters
@@ -89,7 +91,7 @@ layout_clustering = html.Div([
                 min_date_allowed=datetime(2015, 8, 5),
                 max_date_allowed=datetime.today() - timedelta(days=2),
                 initial_visible_month=datetime.today(),
-                date=(datetime.today() - timedelta(days=10)).date()
+                date=(datetime.today() - timedelta(days=10)).date(),
             )
         ]),
          html.Label([
@@ -103,30 +105,36 @@ layout_clustering = html.Div([
             ),
         ]),
         html.Br(),
-        html.Label([
-            "Type of Measurement:",
-            dcc.Dropdown(
-                id='type_of_measurement_id',
-                options=[
-                    {'label': 'Temperature', 'value': 'temperature'},
-                    {'label': 'Humidity', 'value': 'humidity'},
-                ],
-                value='',
-                multi=False
-            ),
+        html.Div([
+            html.Label([
+                "Type of Measurement:",
+                dcc.Dropdown(
+                    id='type_of_measurement_id',
+                    options=[
+                        {'label': 'Temperature', 'value': 'temperature'},
+                        {'label': 'Humidity', 'value': 'humidity'},
+                    ],
+                    value='',
+                    multi=False,
+                    className='form-select'
+                ),
+            ])
         ]),
+        html.Br(),
         html.Label([
             "Number of Clusters:",
             dcc.Input(
-                id="nr_clusters", type="number", placeholder=4,
-                min=1, max=20, step=1
+                id="nr_clusters", type="range", value=4,
+                min=1, max=20, step=1, className='form-range'
             ),
+            html.Div(id='slider-output-container')
         ]),
-        html.Button('Submit', id='submit', n_clicks=0),
-    ], style={'width': '25%', 'margin': 'auto'})
+        html.Br(),
+        html.Button('Submit', id='submit', n_clicks=0, className='btn btn-primary'),
+    ], style={'width': '80%', 'margin': 'auto', 'text-align':'center'})
 
 
 layout = html.Div([
     layout_clustering,
-    dcc.Graph(id='output-container-clustering', style={'height': '90vh'})
+    dcc.Loading(children=[dcc.Graph(id='output-container-clustering', style={'height': '90vh'})], color='#ff5c33', type='graph'),
 ], )

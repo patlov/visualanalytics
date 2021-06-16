@@ -14,12 +14,12 @@ from tabs import worldmap
 from tabs import anomaly
 from tabs import clustering
 from datetime import datetime
+import dash_bootstrap_components as dbc
 from clustering import cluster_ts
-
 import pandas as pd
 import json
 
-app = dash.Dash(prevent_initial_callbacks=True)
+app = dash.Dash(__name__,external_stylesheets=[dbc.themes.UNITED] , prevent_initial_callbacks=True)
 
 with open('database/country_sensors.json', 'r') as file:
     country_sens = json.load(file)
@@ -137,6 +137,9 @@ def timeseries_update(from_time, to_time, land, region, city, viable_sensor_id, 
             fig.add_trace(go.Line(x=sensor_data[viable_sensor_id[idx]].dataFrame.index,
                                   y=sensor_data[viable_sensor_id[idx]].dataFrame[type_of_measurement],
                                   name=(str(viable_sensor_id[idx]))), row=(idx+1), col=1)
+
+        new_height = 500 * len(sensor_data)
+        fig.update_layout(height=new_height)
         return fig
     return {}
 
@@ -164,8 +167,14 @@ def clustering_update(from_time, to_time, type_of_measurement, nr_clusters, subm
         print("no type of measurement selected")
         return {}
 
-    return clustering.clustering_logic(from_time, to_time, type_of_measurement, nr_clusters)
+    return clustering.clustering_logic(from_time, to_time, type_of_measurement, int(nr_clusters))
 
+
+@app.callback(
+    dash.dependencies.Output('slider-output-container', 'children'),
+    [dash.dependencies.Input('nr_clusters', 'value')])
+def update_output(value):
+    return '{} Clusters'.format(value)
 
 
 # update on anomaly tab
