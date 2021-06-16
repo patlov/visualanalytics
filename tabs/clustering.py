@@ -21,6 +21,13 @@ from tabs import clustering
 # warnings.filterwarnings('ignore')
 
 
+def find_time_series(average, cluster_result_sensors, sensor_data, type_of_measurement):
+    for i in range(len(cluster_result_sensors)):
+        time_series = sensor_data[cluster_result_sensors[i]].dataFrame[type_of_measurement].index
+        if len(time_series) == len(average):
+            return time_series
+    raise ValueError("No time series with same length found")
+
 def clustering_logic(from_time, to_time, type_of_measurement, nr_clusters):
     sensor_types = []
     if type_of_measurement == 'temperature' or type_of_measurement == 'humidity':
@@ -43,28 +50,32 @@ def clustering_logic(from_time, to_time, type_of_measurement, nr_clusters):
     result = cluster_ts(sensor_data, type_of_measurement, nr_clusters, MIN_TEMP, MAX_TEMP)
 
     if len(result) != nr_clusters:
+        print(result)
         raise ValueError("Calculation Error with clusters")
 
-
-
-    fig = make_subplots(rows=nr_clusters, cols=1)
+    df = pd.DataFrame()
     for idx in range(0, nr_clusters):
             average_line = result[idx][0]
-            df = pd.DataFrame(average_line, columns=[type_of_measurement]) # create df
-            df = df.assign(Country='AVG', City='AVG', SensorID='AVG', # add other columns to df
-                           Time=sensor_data[result[idx][1][0]].dataFrame[type_of_measurement].index)
+            sensor_list = result[idx][1]
+            time_series = find_time_series(average_line, sensor_list, sensor_data, type_of_measurement)
+            df_avg = pd.DataFrame(average_line, columns=[type_of_measurement]) # create df vor average
+            df_avg = df_avg.assign(ClusterID=idx+1, Country='AVERAGE', City='AVERAGE', SensorID='AVERAGE', # add other columns to df average
+                           Time=time_series)
+            df = df.append(df_avg, ignore_index=True) # add it to big df
             for sensor_id in result[idx][1]:
                 sensor = sensor_data[sensor_id]
                 sensor_df = pd.DataFrame(sensor.dataFrame[type_of_measurement], columns=[type_of_measurement]) # create df
-                sensor_df = sensor_df.assign(Country=sensor.country, City=sensor.city, SensorID=sensor_id, # add other columns to df
+                sensor_df = sensor_df.assign(ClusterID=idx+1, Country=sensor.country, City=sensor.city, SensorID=sensor_id, # add other columns to df
                            Time=sensor.dataFrame[type_of_measurement].index)
                 df = df.append(sensor_df, ignore_index=True) # append to big df
 
-            fig = px.line(df, x='Time', y=type_of_measurement, color='City', facet_row='Country')
+    fig = px.line(df, x='Time', y=type_of_measurement, color='Country', hover_name='City', line_group='City', facet_row='ClusterID')
 
+    fig.update_traces(patch={"line":{"color":"red", "width":3}},
+                  selector={"legendgroup":"AVERAGE"})
 
     new_height = 500 * nr_clusters
-    fig.update_layout(height=new_height, title_text="text")
+    fig.update_layout(height=new_height)
     return fig
 
 layout_clustering = html.Div([
