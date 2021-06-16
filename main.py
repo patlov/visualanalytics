@@ -163,9 +163,15 @@ def clustering_update(from_time, to_time, type_of_measurement, nr_clusters, subm
     if 'submit' not in changed_id: # check if button was clicked
         return {}
     print("yes we clicked submit - lets go")
-    if type_of_measurement == None:
+    if type_of_measurement == '':
         print("no type of measurement selected")
         return {}
+    if type_of_measurement != 'temperature' and type_of_measurement != 'humidity':
+        print("Invalid Sensor Type")
+        return {}
+
+    if nr_clusters == None:
+        nr_clusters = 4
 
     return clustering.clustering_logic(from_time, to_time, type_of_measurement, int(nr_clusters))
 
@@ -182,29 +188,24 @@ def update_output(value):
     Output('output-container-anomaly', 'figure'),
     Input('from_time_id', 'date'),
     Input('to_time_id', 'date'),
-    Input('viable-sensor-id', 'value'),
-    Input('sensor_typ-dropdown', 'value'),
-    Input('type_of_measurement_id', 'value')
+    Input('land-id', 'value'),
+    Input('region-id', 'value'),
+    Input('type_of_measurement_id', 'value'),
+    Input('submit', 'n_clicks')
 )
-def anomaly_update(from_time, to_time, viable_sensor_id, sensor_typ, type_of_measurement):
-    if viable_sensor_id is not None and type_of_measurement is not None:
-        start_time = datetime.strptime(from_time, '%Y-%m-%d')
-        end_time = datetime.strptime(to_time, '%Y-%m-%d')
-        sensor_data = api.download_sensors(viable_sensor_id, start_time, end_time)
-        start_time_str = start_time.strftime("%Y-%m-%d")
-        path = database.buildLocalPath(viable_sensor_id, str(sensor_typ).upper(), start_time_str)
+def anomaly_update(from_time, to_time, land, region, type_of_measurement, submit):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'submit' not in changed_id: # check if button was clicked
+        return {}
+    print("yes we clicked submit - lets go")
+    if type_of_measurement == '':
+        print("no type of measurement selected")
+        return {}
+    if type_of_measurement != 'temperature' and type_of_measurement != 'humidity':
+        print("Invalid Sensor Type")
+        return {}
 
-        if database.ZIP_MODE is False:
-            with open(path, 'r', encoding='utf8', errors='ignore') as sensor_file:
-                sens_data = json.load(sensor_file)
-        else:
-            with gzip.open(path, 'r') as fin:
-                sens_data = json.loads(fin.read().decode('utf-8'))
-
-        df = pd.json_normalize(sens_data, 'dataList', ['id', 'type'])
-        fig1 = px.line(df, x='timestamp', y=type_of_measurement)
-        return fig1
-    return {}
+    return anomaly.anomaly_logic(from_time, to_time, land, region, type_of_measurement)
 
 app.css.append_css({
     'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'

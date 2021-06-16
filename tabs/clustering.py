@@ -31,14 +31,6 @@ def find_time_series(average, cluster_result_sensors, sensor_data, type_of_measu
     raise ValueError("No time series with same length found")
 
 def clustering_logic(from_time, to_time, type_of_measurement, nr_clusters):
-    sensor_types = []
-    if type_of_measurement == 'temperature' or type_of_measurement == 'humidity':
-        sensor_types.extend(['bme280', 'dht22', 'bmp280'])
-    else:
-        print("Invalid Sensor Type")
-        return {}
-    if nr_clusters == None:
-        nr_clusters = 4
 
     start_time = datetime.strptime(from_time, '%Y-%m-%d')
     end_time = datetime.strptime(to_time, '%Y-%m-%d')
