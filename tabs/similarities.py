@@ -15,12 +15,13 @@ import plotly.graph_objects as go
 from tabs import timeseries
 from tabs import worldmap
 from tabs import anomaly
-from tabs import clustering
+from tabs import similarities
 import dash_bootstrap_components as dbc
 
 # import warnings
 # warnings.filterwarnings('ignore')
-
+with open('database/country_sensors.json', 'r', encoding='utf-8') as file:
+    country_sens = json.load(file)
 
 
 def find_time_series(average, cluster_result_sensors, sensor_data, type_of_measurement):
@@ -30,12 +31,12 @@ def find_time_series(average, cluster_result_sensors, sensor_data, type_of_measu
             return time_series
     raise ValueError("No time series with same length found")
 
-def clustering_logic(from_time, to_time, type_of_measurement, nr_clusters):
+def similarities_logic(from_time, to_time, country, state, nr_sensors, type_of_measurement, nr_clusters):
 
     start_time = datetime.strptime(from_time, '%Y-%m-%d')
     end_time = datetime.strptime(to_time, '%Y-%m-%d')
 
-    sensor_ids = api.get_sensors(return_sensors=True, num_sensors=1, type=['bme280', 'dht22', 'bmp280'])
+    sensor_ids = api.get_sensors(country=country, state=state, return_sensors=True, num_sensors=nr_sensors, type=['bme280', 'dht22', 'bmp280'])
     print("download sensors")
     sensor_data = api.download_sensors(sensor_ids, start_time, end_time)
     MAX_TEMP = 50
@@ -47,8 +48,11 @@ def clustering_logic(from_time, to_time, type_of_measurement, nr_clusters):
         print(result)
         raise ValueError("Calculation Error with clusters")
 
+    db_index = []
+
     df = pd.DataFrame()
     for idx in range(nr_clusters):
+            db_index.append(result[idx][0])
             c = result[idx][1]
             average_line = c['centroid']
             sensor_list = c['sensor_ids']
@@ -64,19 +68,22 @@ def clustering_logic(from_time, to_time, type_of_measurement, nr_clusters):
                            Time=sensor.dataFrame[type_of_measurement].index)
                 df = df.append(sensor_df, ignore_index=True) # append to big df
 
-    fig = px.line(df, x='Time', y=type_of_measurement, color='Country', hover_name='City', line_group='City', facet_row='ClusterID')
+    coloring = 'Country'
+    if country != None:
+        coloring = 'City'
+    if state != None:
+        coloring = 'SensorID'
+    fig = px.line(df, x='Time', y=type_of_measurement, color=coloring, hover_name='City', line_group='City', facet_row='ClusterID')
 
     fig.update_traces(patch={"line":{"color":"red", "width":4}},
                   selector={"legendgroup":"AVERAGE"})
 
     new_height = 500 * nr_clusters
     fig.update_layout(height=new_height)
-    return fig
+    return fig, db_index
 
-layout_clustering = html.Div([
-        html.H1("Similarities", style={'text-align': 'center'}),
-        html.P("To find similar measurement we take one sensor of each region as sample and compare it with all other regions, "
-               "otherwise the clusters would be clustered by location (because close sensors will have the similar measurement"),
+
+left_form = html.Div([
         html.Label([
             "From time:",
             dcc.DatePickerSingle(
@@ -115,19 +122,77 @@ layout_clustering = html.Div([
         ]),
         html.Br(),
         html.Label([
+            "Country:",
+            dcc.Dropdown(
+                id='land-id',
+                options=[{'label': land, 'value': land} for land in country_sens],
+                value='',
+                multi=False,
+                className='form-select', style={'min-width': '200px'}
+            ),
+        ]),
+        html.Label([
+            "State:",
+            dcc.Dropdown(id='region-id', className='form-select', style={'min-width': '200px'}),
+        ]),
+        html.Label([
+        "Number of Sensors per Region:",
+        dcc.Slider(
+            id="nr_sensors", value=1,
+            min=1, max=50, step=1, className='form-range',
+            marks={
+                1: {'label': '1', 'style': {'color': '#77b0b1'}},
+                10: {'label': '10'},
+                20: {'label': '20'},
+                30: {'label': '30'},
+                40: {'label': '40'},
+                50: {'label': '50', 'style': {'color': '#f50'}}
+            },
+        ),
+        html.Div(id='nr_sensors-output-container')
+        ]),
+        html.Br(),
+        html.Label([
             "Number of Clusters:",
-            dcc.Input(
-                id="nr_clusters", type="range", value=4,
-                min=1, max=20, step=1, className='form-range'
+            dcc.Slider(
+                id="nr_clusters", value=4,
+                min=1, max=20, step=1,
+                marks={
+                    1: {'label': '1', 'style': {'color': '#77b0b1'}},
+                    10: {'label': '10'},
+                    20: {'label': '20'},
+                    30: {'label': '30'},
+                    40: {'label': '40'},
+                    50: {'label': '50', 'style': {'color': '#f50'}}
+                },
             ),
             html.Div(id='slider-output-container')
         ]),
         html.Br(),
         html.Button('Submit', id='submit', n_clicks=0, className='btn btn-primary'),
+])
+
+right_form = html.Div([
+    html.H2("Cluster Details"),
+    html.H4("DB Index"),
+    html.Div(id='similarities-detail-output-container')
+])
+
+layout_similarities = html.Div([
+        html.H1("Similarities", style={'text-align': 'center'}),
+        html.P("To find similar measurement we take one sensor of each region as sample and compare it with all other regions, "
+               "otherwise the clusters would be clustered by location (because close sensors will have the similar measurement"),
+        dbc.Row(
+            [
+                dbc.Col(left_form, width=4, style={'background': '#e6f9ff', 'padding': '1em', 'margin':'1em'}),
+                dbc.Col(right_form, width=4, style={'background': '#e6ffcc', 'padding': '1em', 'margin':'1em'}),
+            ],
+            justify="center",
+        ),
     ], style={'width': '80%', 'margin': 'auto', 'text-align':'center'})
 
 
 layout = html.Div([
-    layout_clustering,
-    dcc.Loading(children=[dcc.Graph(id='output-container-clustering', style={'height': '90vh'})], color='#ff5c33', type='graph'),
+    layout_similarities,
+    dcc.Loading(children=[dcc.Graph(id='output-container-similarities', style={'height': '90vh'})], color='#ff5c33', type='graph'),
 ], )

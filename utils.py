@@ -8,6 +8,12 @@ from random import sample
 import database
 import dataManagement
 
+import random as r
+import numpy as np
+
+r.seed(1)
+np.random.seed(1)
+
 def unnest_dicts(d, max_vals):
     for v in d.values():
         if isinstance(v, dict):

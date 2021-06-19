@@ -13,6 +13,12 @@ import warnings
 from fastdtw import fastdtw
 from collections import OrderedDict
 
+import random as r
+import numpy as np
+
+r.seed(1)
+np.random.seed(1)
+
 def get_df_dict(sensors, vector, min_val, max_val):
     d_s = {}
 
@@ -30,7 +36,7 @@ def cluster_ts(sensors, vector, n_clusters, min_val, max_val, max_iter=100):
     d_s = get_df_dict(sensors, vector, min_val, max_val)
     dataset = to_time_series_dataset(list(d_s.values()))
 
-    model = TimeSeriesKMeans(n_clusters=n_clusters, metric="softdtw", max_iter=max_iter, n_jobs=-1)
+    model = TimeSeriesKMeans(n_clusters=n_clusters, metric="dtw", max_iter=max_iter, n_jobs=-1)
     labels = model.fit_predict(dataset)
     s = model.cluster_centers_.shape
 
@@ -41,7 +47,9 @@ def cluster_ts(sensors, vector, n_clusters, min_val, max_val, max_iter=100):
         if not labels[i] in result:
             result[labels[i]] = {'centroid': model.cluster_centers_[labels[i]], 'sensor_ids': [], 'centroid_ds': [], "db_indices": []}
         result[labels[i]]['sensor_ids'].append(str(sensor_ids[i]))
-        result[labels[i]]['centroid_ds'].append(fastdtw(model.cluster_centers_[labels[i]], d_s[sensor_ids[i]])[0])
+        centroid = model.cluster_centers_[labels[i]]
+        tmp_sensor = np.array(d_s[sensor_ids[i]])
+        result[labels[i]]['centroid_ds'].append(fastdtw(centroid, tmp_sensor.reshape(tmp_sensor.shape[0],1))[0])
 
     for i in result.keys():
         vi = result[i]

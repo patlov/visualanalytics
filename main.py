@@ -12,12 +12,17 @@ import plotly.graph_objects as go
 from tabs import timeseries
 from tabs import worldmap
 from tabs import anomaly
-from tabs import clustering
+from tabs import similarities
 from datetime import datetime
 import dash_bootstrap_components as dbc
 from clustering import cluster_ts
 import pandas as pd
 import json
+import random as r
+import numpy as np
+
+r.seed(1)
+np.random.seed(1)
 
 app = dash.Dash(__name__,external_stylesheets=[dbc.themes.UNITED] , prevent_initial_callbacks=True)
 
@@ -27,13 +32,13 @@ with open('database/country_sensors.json', 'r', encoding='utf-8') as file:
 app.config['suppress_callback_exceptions'] = True
 
 app.layout = html.Div([
-    html.H1('Visual Analytics - Climate data'),
+    html.Img(src=app.get_asset_url('geoclima.png'), style={'height':'100px'}),
     dcc.Tabs(id="tabs-example", value='tab-1-example', children=[
         dcc.Tab(label='Worldmap', value='worldmap'),
-        dcc.Tab(label='Clustering', value='clustering'),
+        dcc.Tab(label='Similarities', value='similarities'),
         dcc.Tab(label='Timeseries', value='timeseries'),
         dcc.Tab(label='Anomaly', value='anomaly')
-    ]),
+    ],),
     html.Div(id='tabs-content-example')
 ])
 app.title = 'VA Climate Data Analysis 2021'
@@ -44,8 +49,8 @@ app.title = 'VA Climate Data Analysis 2021'
 def render_content(tab):
     if tab == 'timeseries':
         return timeseries.layout
-    elif tab == 'clustering':
-        return clustering.layout
+    elif tab == 'similarities':
+        return similarities.layout
     elif tab == 'worldmap':
         return worldmap.layout
     elif tab == 'anomaly':
@@ -161,31 +166,47 @@ def update_Worldmap(type_, submit):
         return worldmap.update_map(type_, True)
     return worldmap.update_map(type_)
 
-# update on clustering tab
+
+def generate_output_id(value1):
+    return '{} container'.format(value1[0])
+
+# update on similarities tab
 @app.callback(
-    Output('output-container-clustering', 'figure'),
+    Output('output-container-similarities', 'figure'),
+    Output('similarities-detail-output-container', 'children'),
     Input('from_time_id', 'date'),
     Input('to_time_id', 'date'),
+    Input('land-id', 'value'),
+    Input('region-id', 'value'),
+    Input('nr_sensors', 'value'),
     Input('type_of_measurement_id', 'value'),
     Input('nr_clusters', 'value'),
     Input('submit', 'n_clicks')
 )
-def clustering_update(from_time, to_time, type_of_measurement, nr_clusters, submit):
+def similarities_update(from_time, to_time, country, state, nr_sensors, type_of_measurement, nr_clusters, submit):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'submit' not in changed_id: # check if button was clicked
-        return {}
+        return {},''
     print("yes we clicked submit - lets go")
     if type_of_measurement == '':
         print("no type of measurement selected")
-        return {}
+        return {},"Please enter a Type of measurement"
     if type_of_measurement != 'temperature' and type_of_measurement != 'humidity':
         print("Invalid Sensor Type")
-        return {}
+        return {},"Error in finding sensor type"
 
     if nr_clusters == None:
         nr_clusters = 4
 
-    return clustering.clustering_logic(from_time, to_time, type_of_measurement, int(nr_clusters))
+    if country == '':
+        country = None
+    if state == '':
+        state = None
+
+    fig, db_indices = similarities.similarities_logic(from_time, to_time, country, state, nr_sensors, type_of_measurement, int(nr_clusters))
+    print(db_indices)
+    return fig, [html.Div(
+        html.P("Cluster " + str(i) + ": " + str(index))) for i,index in enumerate(db_indices)]
 
 
 @app.callback(
@@ -193,6 +214,12 @@ def clustering_update(from_time, to_time, type_of_measurement, nr_clusters, subm
     [dash.dependencies.Input('nr_clusters', 'value')])
 def update_output(value):
     return '{} Clusters'.format(value)
+
+@app.callback(
+    dash.dependencies.Output('nr_sensors-output-container', 'children'),
+    [dash.dependencies.Input('nr_sensors', 'value')])
+def update_output(value):
+    return '{} Sensors'.format(value)
 
 
 # update on anomaly tab
