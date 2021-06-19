@@ -66,6 +66,7 @@ def get_cache(csv_filename):
     if os.path.exists(path):
         with open(path, 'r') as f:
             content = f.read()
+        print(f"Reading from cache: {csv_filename}")
 
     return content
 

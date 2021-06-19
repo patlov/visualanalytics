@@ -3,7 +3,7 @@ import dataManagement
 import itertools
 import pandas as pd
 from datetime import *
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 from classes import Sensor
 from utils import get_sensor_urls, unnest_dicts, safe_get, download_wrapper
 from preprocess import cleanup_dataframe
@@ -19,7 +19,7 @@ def download_sensors(sensor_ids, from_time, to_time, step_time=None):
     file_names= list(itertools.chain(*file_names))
 
     zipped_params = list(zip(sensor_ids_names, file_names))
-    pool = Pool(processes=multiprocessing.cpu_count())
+    pool = Pool(processes=cpu_count())
     result = pool.map(download_wrapper, zipped_params)
     d = {}
 

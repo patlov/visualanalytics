@@ -37,7 +37,7 @@ def getSensorType(sensor_id):
 
 
 def getCSVContent(file_url):
-    print(file_url)
+    print(f"Downloading file: {file_url}")
     req = requests.get(file_url, timeout=3)
     if req.status_code == 404:
         raise FileNotFoundError("Url " + file_url + "  not exists")
