@@ -145,9 +145,21 @@ def timeseries_update(from_time, to_time, land, region, city, viable_sensor_id, 
 
 
 # Worldmap
-@app.callback(Output('page-2-content', 'children'), [Input('page-2-radios', 'value')])
-def page_2_radios(value):
-    return 'You have selected "{}"'.format(value)
+# adjust here now to be with a timer and also to measure
+@app.callback(
+    Output('worldmap-graph-2', 'figure'),
+    Input('type_of_measurement_id_worldmap', 'value'),
+    Input('submit_world', 'n_clicks')
+)
+def update_Worldmap(type_, submit):
+    if type_ == '':
+        return worldmap.emptyMap()
+    if type_ != 'temperature' and type_ != 'humidity':
+        return worldmap.emptyMap()
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'submit_world' in changed_id:
+        return worldmap.update_map(type_, True)
+    return worldmap.update_map(type_)
 
 # update on clustering tab
 @app.callback(
