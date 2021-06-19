@@ -16,11 +16,11 @@ In this project we want to visualize the data of [sensor.community](https://sens
 
 ## Design of our Solution
 
-backend 
+### Backend 
 
 
 
-frontend 
+### Frontend 
 
 ## Description of our Implementation
 

@@ -41,7 +41,7 @@ def clustering_logic(from_time, to_time, type_of_measurement, nr_clusters):
     MAX_TEMP = 50
     MIN_TEMP = -50
     print("clustering sensors")
-    result = cluster_ts(sensor_data, type_of_measurement, nr_clusters, MIN_TEMP, MAX_TEMP)
+    result = list(reversed(cluster_ts(sensor_data, type_of_measurement, nr_clusters, MIN_TEMP, MAX_TEMP)))
 
     if len(result) != nr_clusters:
         print(result)
