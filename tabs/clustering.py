@@ -48,15 +48,16 @@ def clustering_logic(from_time, to_time, type_of_measurement, nr_clusters):
         raise ValueError("Calculation Error with clusters")
 
     df = pd.DataFrame()
-    for idx in range(0, nr_clusters):
-            average_line = result[idx][0]
-            sensor_list = result[idx][1]
+    for idx in range(nr_clusters):
+            c = result[idx][1]
+            average_line = c['centroid']
+            sensor_list = c['sensor_ids']
             time_series = find_time_series(average_line, sensor_list, sensor_data, type_of_measurement)
             df_avg = pd.DataFrame(average_line, columns=[type_of_measurement]) # create df vor average
             df_avg = df_avg.assign(ClusterID=idx+1, Country='AVERAGE', City='AVERAGE', SensorID='AVERAGE', # add other columns to df average
                            Time=time_series)
             df = df.append(df_avg, ignore_index=True) # add it to big df
-            for sensor_id in result[idx][1]:
+            for sensor_id in sensor_list:
                 sensor = sensor_data[sensor_id]
                 sensor_df = pd.DataFrame(sensor.dataFrame[type_of_measurement], columns=[type_of_measurement]) # create df
                 sensor_df = sensor_df.assign(ClusterID=idx+1, Country=sensor.country, City=sensor.city, SensorID=sensor_id, # add other columns to df

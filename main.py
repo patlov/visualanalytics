@@ -21,7 +21,7 @@ import json
 
 app = dash.Dash(__name__,external_stylesheets=[dbc.themes.UNITED] , prevent_initial_callbacks=True)
 
-with open('database/country_sensors.json', 'r') as file:
+with open('database/country_sensors.json', 'r', encoding='utf-8') as file:
     country_sens = json.load(file)
 
 app.config['suppress_callback_exceptions'] = True

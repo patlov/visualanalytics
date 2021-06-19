@@ -7,7 +7,7 @@ import json
 import dash_bootstrap_components as dbc
 
 
-with open('database/country_sensors.json', 'r') as file:
+with open('database/country_sensors.json', 'r', encoding='utf-8') as file:
     country_sens = json.load(file)
 
 layout_timeseries = html.Div([
