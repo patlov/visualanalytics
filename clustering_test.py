@@ -25,14 +25,14 @@ class TestCluster(unittest.TestCase):
 
         plt.show()
 
-    def test_aaaaustria_sensors(self):
-        from_time = datetime.datetime(2021, 3, 1)
-        to_time = datetime.datetime(2021, 3, 3)
+    def test_austria_sensors(self):
+        from_time = datetime.datetime(2020, 3, 1)
+        to_time = datetime.datetime(2020, 3, 3)
         sensors = a.get_sensors("AUT", "Steiermark", "Graz", return_sensors=True)
         sensor_list = a.download_sensors(sensors, from_time, to_time)
         result = cluster_ts(sensor_list, 'temperature', 7, MIN_TEMP, MAX_TEMP)
         self.assertEqual(len(result), 7)
-        self.plot_cluster(result, sensor_list, 'temperature')
+        # self.plot_cluster(result, sensor_list, 'temperature')
 
     def test_berlin_sensors(self):
         from_time = datetime.datetime(2021, 3, 1)

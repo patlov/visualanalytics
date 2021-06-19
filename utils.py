@@ -101,15 +101,23 @@ def get_sensor_one_day(sensor_id, csv_filename):
     df = pd.read_csv(StringIO(content), sep=';')
     return sensor_id, df
 
-def get_sensor_urls(sensor_id, from_time, to_time):
+def calcDownloadStepSize(from_time, to_time):
+    import numpy as np
+    diff = to_time - from_time
+    return max(round(diff.days * 0.1), 1)
+
+def get_sensor_urls(sensor_id, from_time, to_time, delta=None):
+    if not delta:
+        delta = calcDownloadStepSize(from_time, to_time)
+
     sensor_type = database.getSensorType(sensor_id)
 
     current_time = from_time
     file_names = []
     while(current_time < to_time):
-        current_time += timedelta(days=1)
         current_date_string = current_time.strftime("%Y-%m-%d")
         csv_filename = database.buildCSVurl(sensor_id, sensor_type, current_date_string)
         file_names.append(csv_filename)
+        current_time += timedelta(days=delta)
 
     return file_names

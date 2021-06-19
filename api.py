@@ -8,18 +8,18 @@ from classes import Sensor
 from utils import get_sensor_urls, unnest_dicts, safe_get, download_wrapper
 from preprocess import cleanup_dataframe
 
-def download_sensors(sensor_ids, from_time, to_time):
+def download_sensors(sensor_ids, from_time, to_time, step_time=None):
     file_names = []
     sensor_ids_names = []
     for i in sensor_ids:
-        file_names.append(get_sensor_urls(i, from_time, to_time))
+        file_names.append(get_sensor_urls(i, from_time, to_time, step_time))
         sensor_ids_names.append([i] * len(file_names[-1]))
 
     sensor_ids_names = list(itertools.chain(*sensor_ids_names))
     file_names= list(itertools.chain(*file_names))
 
     zipped_params = list(zip(sensor_ids_names, file_names))
-    pool = Pool()
+    pool = Pool(processes=multiprocessing.cpu_count())
     result = pool.map(download_wrapper, zipped_params)
     d = {}
 
