@@ -16,23 +16,23 @@ class TestCluster(unittest.TestCase):
         n_clusters = len(cluster)
         fig, axs = plt.subplots(n_clusters, sharex=True, sharey=True)
 
-        for i in range(n_clusters):
-            for j in range(len(cluster[i][1])):
-                id = cluster[i][1][j]
+        for i in range(len(cluster)):
+            c = cluster[i][1]
+            for id in c['sensor_ids']:
                 axs[i].plot(list(sensor_list[id].dataFrame[vector]), linewidth=1)
-            axs[i].plot(cluster[i][0], linewidth=3)
+            axs[i].plot(c['centroid'], linewidth=3)
             axs[i].grid()
 
         plt.show()
 
-    def test_austria_sensors(self):
+    def test_aaaaustria_sensors(self):
         from_time = datetime.datetime(2021, 3, 1)
         to_time = datetime.datetime(2021, 3, 3)
         sensors = a.get_sensors("AUT", "Steiermark", "Graz", return_sensors=True)
         sensor_list = a.download_sensors(sensors, from_time, to_time)
-        result = cluster_ts(sensor_list, 'temperature', 6, MIN_TEMP, MAX_TEMP)
-        self.assertEqual(len(result), 6)
-        # self.plot_cluster(result, sensor_list, 'temperature')
+        result = cluster_ts(sensor_list, 'temperature', 7, MIN_TEMP, MAX_TEMP)
+        self.assertEqual(len(result), 7)
+        self.plot_cluster(result, sensor_list, 'temperature')
 
     def test_berlin_sensors(self):
         from_time = datetime.datetime(2021, 3, 1)
@@ -69,7 +69,7 @@ class TestCluster(unittest.TestCase):
         result = cluster_ts(sensor_list, 'temperature', 5, MIN_TEMP, MAX_TEMP)
         # self.plot_cluster(result, sensor_list, 'temperature')
 
-    def test_aaaall_cities(self):
+    def test_all_cities(self):
         from_time = datetime.datetime(2021, 3, 1)
         to_time = datetime.datetime(2021, 3, 3)
         sensors = a.get_sensors(return_sensors=True, sensor_per_city=1, type=['bme280', 'dht22', 'bmp280'])
