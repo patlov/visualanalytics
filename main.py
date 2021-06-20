@@ -205,8 +205,8 @@ def similarities_update(from_time, to_time, country, state, nr_sensors, type_of_
 
     fig, db_indices = similarities.similarities_logic(from_time, to_time, country, state, nr_sensors, type_of_measurement, int(nr_clusters))
     print(db_indices)
-    return fig, [html.Div(
-        html.P("Cluster " + str(i) + ": " + str(index))) for i,index in enumerate(db_indices)]
+    return fig, \
+           [html.Div(html.P("Cluster " + str(i) + ": " + str(index))) for i,index in enumerate(db_indices,1) if i < 9] # only show first 9 entries (because of space)
 
 
 @app.callback(
@@ -225,6 +225,8 @@ def update_output(value):
 # update on anomaly tab
 @app.callback(
     Output('output-container-anomaly', 'figure'),
+    Output('anomaly-overview-output-container', 'children'),
+    Output('anomaly-detail-output-container', 'children'),
     Input('from_time_id', 'date'),
     Input('to_time_id', 'date'),
     Input('land-id', 'value'),
@@ -232,19 +234,27 @@ def update_output(value):
     Input('type_of_measurement_id', 'value'),
     Input('submit', 'n_clicks')
 )
-def anomaly_update(from_time, to_time, land, region, type_of_measurement, submit):
+def anomaly_update(from_time, to_time, country, state, type_of_measurement, submit):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'submit' not in changed_id: # check if button was clicked
-        return {}
+        return {}, '',''
     print("yes we clicked submit - lets go")
     if type_of_measurement == '':
         print("no type of measurement selected")
-        return {}
+        return {}, "Please enter a Type of measurement",''
     if type_of_measurement != 'temperature' and type_of_measurement != 'humidity':
         print("Invalid Sensor Type")
-        return {}
+        return {}, "Error in finding sensor type",''
 
-    return anomaly.anomaly_logic(from_time, to_time, land, region, type_of_measurement)
+    return_dict = anomaly.anomaly_logic(from_time, to_time, country, state, type_of_measurement)
+
+    # add country, state, from to time, type to details
+    return return_dict['fig'], [html.Div([html.P('Observed Sensors: ' + str(return_dict['nr_sensors'])),
+                                          html.P('From ' + from_time + ' to ' + to_time),
+                                          html.P('Country: ' + country),
+                                          html.P('State: ' + state),
+                                          html.P('Type of Measurement: ' + type_of_measurement)])] ,\
+           [html.Div(html.P("Anomaly DB Index: " + str(return_dict['db_index'])))]
 
 app.css.append_css({
     'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'
