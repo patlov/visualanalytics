@@ -11,7 +11,7 @@ with open('database/country_sensors.json', 'r', encoding='utf-8') as file:
     country_sens = json.load(file)
 
 layout_timeseries = html.Div([
-        html.H1("Timeseries", style={'text-align': 'center'}),
+        html.H1("Timeseries", style={'text-align': 'center', 'margin-top':'1em'}),
         html.P(
         "You can specifiy which sensor in which time range should be displayed"),
         html.Label([

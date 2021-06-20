@@ -144,7 +144,7 @@ right_form = html.Div([
 ])
 
 layout_anomaly = html.Div([
-        html.H1("Anomaly", style={'text-align': 'center'}),
+        html.H1("Anomaly", style={'text-align': 'center', 'margin-top':'1em'}),
         html.P("Select the region where you want to find anomalies. You can only provide the country to search in the whole country. If country and state is provided, "
                "anomalies in the state are provided"),
         dbc.Row(

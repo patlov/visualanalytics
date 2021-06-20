@@ -96,29 +96,31 @@ def similarities_logic(from_time, to_time, country, state, nr_sensors, type_of_m
 
 left_form = html.Div([
         html.Label([
-            "From time:",
+            "From time:*",
             dcc.DatePickerSingle(
                 id='from_time_id',
                 min_date_allowed=datetime(2015, 8, 5),
                 max_date_allowed=datetime.today() - timedelta(days=2),
                 initial_visible_month=datetime.today(),
                 date=(datetime.today() - timedelta(days=10)).date(),
+                style={'margin' : '1em'}
             )
-        ]),
+        ], className='text-primary', style={'font-weight': 'bold'}),
          html.Label([
-            "To time:",
+            "To time:*",
             dcc.DatePickerSingle(
                 id='to_time_id',
                 min_date_allowed=datetime(2015, 8, 5),
                 max_date_allowed=datetime.today() - timedelta(days=2),
                 initial_visible_month=datetime.today(),
-                date=(datetime.today() - timedelta(days=9)).date()
+                date=(datetime.today() - timedelta(days=9)).date(),
+                style={'margin' : '1em'}
             ),
-        ]),
+        ], className='text-primary', style={'font-weight': 'bold'}),
         html.Br(),
         html.Div([
             html.Label([
-                "Type of Measurement:",
+                "Type of Measurement:*",
                 dcc.Dropdown(
                     id='type_of_measurement_id',
                     options=[
@@ -127,9 +129,10 @@ left_form = html.Div([
                     ],
                     value='',
                     multi=False,
-                    className='form-select'
+                    className='form-select',
+                    style={'margin' : '1em', 'min-width': '200px'}
                 ),
-            ])
+            ], className='text-primary', style={'font-weight': 'bold'})
         ]),
         html.Br(),
         html.Label([
@@ -139,7 +142,7 @@ left_form = html.Div([
                 options=[{'label': land, 'value': land} for land in country_sens],
                 value='',
                 multi=False,
-                className='form-select', style={'min-width': '200px'}
+                className='form-select', style={'min-width': '200px', 'margin' : '0 1em 0 1em'}
             ),
         ]),
         html.Label([
@@ -147,7 +150,7 @@ left_form = html.Div([
             dcc.Dropdown(id='region-id', value='', className='form-select', style={'min-width': '200px'}),
         ]),
         html.Label([
-        "Number of Sensors per Region:",
+        "Number of Sensors per Region: (default 1)",
         dcc.Slider(
             id="nr_sensors", value=1,
             min=1, max=50, step=1, className='form-range',
@@ -164,7 +167,7 @@ left_form = html.Div([
         ]),
         html.Br(),
         html.Label([
-            "Number of Clusters:",
+            "Number of Clusters: (default 4)",
             dcc.Slider(
                 id="nr_clusters", value=4,
                 min=1, max=20, step=1,
@@ -191,7 +194,7 @@ right_form = html.Div([
 ])
 
 layout_similarities = html.Div([
-        html.H1("Similarities", style={'text-align': 'center'}),
+        html.H1("Similarities", style={'text-align': 'center', 'margin-top':'1em'}),
         html.P("To find similar measurement we take one sensor of each region as sample and compare it with all other regions, "
                "otherwise the clusters would be clustered by location (because close sensors will have the similar measurement"),
         dbc.Row(

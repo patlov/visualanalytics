@@ -8,6 +8,7 @@ import plotly.express as px
 import json
 import aiohttp
 import asyncio
+import dash_bootstrap_components as dbc
 
 # workaround, because of sensor HTTP configuration
 # limit amount of parallel connections
@@ -102,7 +103,9 @@ def update_map(value_type, refresh=False):
 
 
 layout = html.Div([
-    html.Div([
+    dbc.Row(
+        [
+            dbc.Col(html.Div([
         html.Label([
             "Type of Measurement:",
             dcc.Dropdown(
@@ -116,10 +119,13 @@ layout = html.Div([
                 className='form-select'
             ),
         ])
-    ]),
-    html.Div([
-        html.Button('Refresh', id='submit_world', n_clicks=0, className='btn btn-primary'),
-    ], style={'position': 'absolute', 'right': '5px', 'top': '140px'}),
+    ]), width=4, style={'text-align':'center'}),
+            dbc.Col([html.Button('Refresh', id='submit_world', n_clicks=0, className='btn btn-primary'),
+            ], width=2, style={'font': 'Lucida Console'}),
+        ],
+        justify="between",
+        style={'margin-top':'1em'}
+    ),
     dcc.Loading(children=[dcc.Graph(id='worldmap-graph-2', figure=emptyMap())], color='#ff5c33',
                 type='cube'),
 ])

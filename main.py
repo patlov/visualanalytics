@@ -15,6 +15,7 @@ from tabs import anomaly
 from tabs import similarities
 from datetime import datetime
 import dash_bootstrap_components as dbc
+from dash.dependencies import Input, Output, State
 from clustering import cluster_ts
 import pandas as pd
 import json
@@ -36,10 +37,28 @@ app.layout = html.Div([
         dbc.Row(
             [
                 dbc.Col(html.Img(src=app.get_asset_url('geoclima.png'), style={'height':'100px'}), width=4),
-                dbc.Col(html.H1("GeoClima Visualizer"), width=4, style={'font':'Lucida Console'}),
+                dbc.Col(children=[
+                    html.H1("GeoClima Visualizer"),
+                ], width=4, style={'font':'Lucida Console'}),
             ],
             justify="center",
-        )],
+        ),
+        html.Div([
+            html.Button('Impressum', id='open-centered', n_clicks=0, className='btn btn-info'),
+        ], style={'position': 'absolute', 'right': '5px', 'top': '20px'}),
+        dbc.Modal(
+            [
+                dbc.ModalHeader("Impressum GeoClima Visualizer"),
+                dbc.ModalBody([html.Div('GeoClima Visualizer was created by '), html.Div('Lovric Patrick'),
+                               html.Div('Kerschbaumer David'),
+                               html.Div('Theiner Maximilian'), html.Div('TU Graz - Visual Analytics SS2021')]),
+                dbc.ModalFooter( dbc.Button("Close",id="close-centered", className="ml-auto", n_clicks=0, )),
+            ],
+            id="modal-centered",
+            centered=True,
+            is_open=False,
+        ),
+    ],
         style={'background':'#e6f9ff'}),
     dcc.Tabs(id="tabs-example", value='tab-1-example', children=[
         dcc.Tab(label='Worldmap', children=[worldmap.layout]),
@@ -64,6 +83,16 @@ def render_content(tab):
     elif tab == 'anomaly':
         return anomaly.layout
 
+
+@app.callback(
+    Output("modal-centered", "is_open"),
+    [Input("open-centered", "n_clicks"), Input("close-centered", "n_clicks")],
+    [State("modal-centered", "is_open")],
+)
+def toggle_modal(n1, n2, is_open):
+    if n1 or n2:
+        return not is_open
+    return is_open
 
 # input related stuff
 @app.callback(
