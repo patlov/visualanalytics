@@ -42,7 +42,7 @@ app.layout = html.Div([
         )],
         style={'background':'#e6f9ff'}),
     dcc.Tabs(id="tabs-example", value='tab-1-example', children=[
-        dcc.Tab(label='Worldmap', value='worldmap'),
+        dcc.Tab(label='Worldmap', children=[worldmap.layout]),
         dcc.Tab(label='Similarities', value='similarities'),
         dcc.Tab(label='Timeseries', value='timeseries'),
         dcc.Tab(label='Anomaly', value='anomaly')
@@ -116,7 +116,7 @@ def set_sensors_typ_options(selected_country, selected_region, selected_city, se
     else:
         return []
 
-
+#---------------------------------------------------------------------------------------
 # update on timeseries tab
 @app.callback(
     Output('output-container-timeseries', 'figure'),
@@ -156,7 +156,7 @@ def timeseries_update(from_time, to_time, land, region, city, viable_sensor_id, 
         return fig
     return {}
 
-
+#-------------------------------------------------------------------------------------------------------------
 # Worldmap
 # adjust here now to be with a timer and also to measure
 @app.callback(
@@ -178,6 +178,7 @@ def update_Worldmap(type_, submit):
 def generate_output_id(value1):
     return '{} container'.format(value1[0])
 
+#--------------------------------------------------------------------------------------------------------
 # update on similarities tab
 @app.callback(
     Output('output-container-similarities', 'figure'),
@@ -229,7 +230,7 @@ def update_output(value):
 def update_output(value):
     return '{} Sensors'.format(value)
 
-
+#----------------------------------------------------------------------------------------------------
 # update on anomaly tab
 @app.callback(
     Output('output-container-anomaly', 'figure'),
