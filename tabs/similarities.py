@@ -36,6 +36,11 @@ def similarities_logic(from_time, to_time, country, state, nr_sensors, type_of_m
     start_time = datetime.strptime(from_time, '%Y-%m-%d')
     end_time = datetime.strptime(to_time, '%Y-%m-%d')
 
+    if country == '':
+        country = None
+    if state == '':
+        state = None
+
     sensor_ids = api.get_sensors(country=country, state=state, return_sensors=True, num_sensors=nr_sensors, type=['bme280', 'dht22', 'bmp280'])
     print("download sensors")
     sensor_data = api.download_sensors(sensor_ids, start_time, end_time)
@@ -80,7 +85,13 @@ def similarities_logic(from_time, to_time, country, state, nr_sensors, type_of_m
 
     new_height = 500 * nr_clusters
     fig.update_layout(height=new_height)
-    return fig, db_index
+
+    return_dict = {
+        'fig' : fig,
+        'db_indices' : db_index, # db index of anomaly
+        'nr_sensors' : len(sensor_data)
+        }
+    return return_dict
 
 
 left_form = html.Div([
@@ -133,7 +144,7 @@ left_form = html.Div([
         ]),
         html.Label([
             "State:",
-            dcc.Dropdown(id='region-id', className='form-select', style={'min-width': '200px'}),
+            dcc.Dropdown(id='region-id', value='', className='form-select', style={'min-width': '200px'}),
         ]),
         html.Label([
         "Number of Sensors per Region:",
@@ -174,6 +185,7 @@ left_form = html.Div([
 
 right_form = html.Div([
     html.H2("Cluster Details"),
+    html.Div(id='similarities-overview-output-container'),
     html.H4("DB Index"),
     html.Div(id='similarities-detail-output-container')
 ])
