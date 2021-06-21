@@ -30,12 +30,11 @@ GeoClima consists of 4 Tabs with different functionalities.
 
 #### Worldmap
 
-In this tab we get for every federal state in the world, which sends sensor data - one sensor and display
+In this tab we get, for every federal state in the world, which sends sensor data, one sensor and display
 it over the whole map. We reduced it to specific sensor types (`'bme280', 'dht22', 'bmp280'`) which only send temperature and humidity data. The reason
-being for that, is we wanted to reduce the amount of requests we would send to the server and also usability. 
-We don't want long loading times.
+being for that, is we wanted to reduce the amount of requests we would send to the server and also usability.
 
-The sensor data displayed shows the average of the last 5 minutes and can be refreshed by the button on the topright with
+The sensor data displayed shows the average of the last 5 minutes and can be refreshed by the button on the top-right with
 the name `refresh`. On the top-left you can choose which type of sensor you want to display on the map. 
 Now if you click onto a sensor, it will move you to the tab time-series where you choose a time window (from / to-time)
 and the sensor gets plotted and you can see the data in a linegraph.
