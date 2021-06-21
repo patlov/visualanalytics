@@ -146,9 +146,11 @@ def set_sensors_typ_options(selected_country, selected_region, selected_city):
     Input('sensor_typ-dropdown', 'value'),
     Input('from_time_id', 'date'),
     Input('to_time_id', 'date'),
-    Input('clicked_sensor_value', 'data')
+    Input('clicked_sensor_value', 'data'),
 )
-def set_sensors_typ_options(selected_country, selected_region, selected_city, selected_type, from_time, to_time, clicked_sens_data):
+def set_sensors_typ_options(selected_country, selected_region, selected_city, selected_type, from_time, to_time,
+                            clicked_sens_data):
+    print(clicked_sens_data)
     print('we getting updated in the sensor id')
     if selected_country in country_sens \
             and selected_region in country_sens[selected_country] \
@@ -160,8 +162,8 @@ def set_sensors_typ_options(selected_country, selected_region, selected_city, se
 
     if clicked_sens_data is not None:
         return[{'label': clicked_sens_data[0], 'value': clicked_sens_data[0]}], clicked_sens_data[0], clicked_sens_data[1]
-    else:
-        return [], None, None
+
+    return [], None, None
 
 
 # ---------------------------------------------------------------------------------------
@@ -176,11 +178,10 @@ def set_sensors_typ_options(selected_country, selected_region, selected_city, se
     Input('viable-sensor-id', 'value'),
     Input('sensor_typ-dropdown', 'value'),
     Input('type_of_measurement_id', 'value'),
-    Input('clicked_sensor_value', 'data'),
     Input('submit', 'n_clicks')
 )
 def timeseries_update(from_time, to_time, land, region, city, viable_sensor_id, sensor_typ, type_of_measurement,
-                      clicked_sensor_data, submit):
+                      submit):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'submit' not in changed_id:  # check if button was clicked
         return {}
@@ -225,11 +226,14 @@ def update_Worldmap(type_, submit):
     return worldmap.update_map(type_)
 
 
-@app.callback([Output('clicked_sensor_value', 'data'), Output('tabs-example', 'value')],
+@app.callback([Output('clicked_sensor_value', 'data'), Output('tabs-example', 'value'), Output('worldmap-graph-2', 'clickData')],
               Input('worldmap-graph-2', 'clickData'), Input('type_of_measurement_id_worldmap', 'value'))
 def display_click_data(clickData, type_of_measurement):
+    print('we got clicked!')
+    print(clickData)
+    print(type_of_measurement)
     if clickData is not None:
-        return [clickData['points'][0]['customdata'][0], type_of_measurement], 'timeseries'
+        return [clickData['points'][0]['customdata'][0], type_of_measurement], 'timeseries', None
     return dash.no_update
 
 
