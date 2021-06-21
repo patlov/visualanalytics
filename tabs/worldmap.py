@@ -10,15 +10,8 @@ import aiohttp
 import asyncio
 import dash_bootstrap_components as dbc
 
-# workaround, because of sensor HTTP configuration
-# limit amount of parallel connections
-# connector = aiohttp.TCPConnector(limit=50)
-
-# kill keep alive
-# connector = aiohttp.TCPConnector(force_close=True)
-
 # sensor_per_city = api.get_sensors(return_sensors=True, num_sensors=1, type=['bme280', 'dht22', 'bmp280'])
-sensor_per_country = api.get_state_sensors(num_cities=1, type=['bmp280', 'dht22', 'bmp280'])
+sensor_per_country = api.get_state_sensors(num_cities=1, type=['bme280', 'dht22', 'bmp280'])
 token = open("keys/mapbox_token").read()
 
 sensors_from_web = None

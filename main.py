@@ -13,7 +13,7 @@ from tabs import timeseries
 from tabs import worldmap
 from tabs import anomaly
 from tabs import similarities
-from datetime import datetime
+from datetime import datetime, timedelta
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 from clustering import cluster_ts
@@ -25,7 +25,14 @@ import numpy as np
 r.seed(1)
 np.random.seed(1)
 
-app = dash.Dash(__name__,external_stylesheets=[dbc.themes.UNITED] , prevent_initial_callbacks=True)
+styles = {
+    'input_fields': {
+        'min-width': '200px',
+        'display': 'block'
+    }
+}
+
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.UNITED], prevent_initial_callbacks=True)
 
 with open('database/country_sensors.json', 'r', encoding='utf-8') as file:
     country_sens = json.load(file)
@@ -61,12 +68,13 @@ app.layout = html.Div([
     ],
         style={'background':'#e6f9ff'}),
     dcc.Tabs(id="tabs-example", value='tab-1-example', children=[
-        dcc.Tab(label='Worldmap', children=[worldmap.layout]),
-        dcc.Tab(label='Similarities', value='similarities'),
-        dcc.Tab(label='Timeseries', value='timeseries'),
-        dcc.Tab(label='Anomaly', value='anomaly')
-    ],),
-    html.Div(id='tabs-content-example')
+        dcc.Tab(id="tab_worldmap", label='Worldmap', children=[worldmap.layout]),
+        dcc.Tab(id="tab_similarities", label='Similarities', value='similarities'),
+        dcc.Tab(id="tab_timeseries", label='Timeseries', value='timeseries'),
+        dcc.Tab(id="tab_anomaly", label='Anomaly', value='anomaly')
+    ], ),
+    html.Div(id='tabs-content-example'),
+    dcc.Store(id='clicked_sensor_value')
 ])
 app.title = 'VA Climate Data Analysis 2021'
 
@@ -127,25 +135,36 @@ def set_sensors_typ_options(selected_country, selected_region, selected_city):
     else:
         return []
 
+
 @app.callback(
     Output('viable-sensor-id', 'options'),
+    Output('viable-sensor-id', 'value'),
+    Output('type_of_measurement_id', 'value'),
     Input('land-id', 'value'),
     Input('region-id', 'value'),
     Input('city-id', 'value'),
-    Input('sensor_typ-dropdown', 'value'))
-def set_sensors_typ_options(selected_country, selected_region, selected_city, selected_type):
+    Input('sensor_typ-dropdown', 'value'),
+    Input('from_time_id', 'date'),
+    Input('to_time_id', 'date'),
+    Input('clicked_sensor_value', 'data')
+)
+def set_sensors_typ_options(selected_country, selected_region, selected_city, selected_type, from_time, to_time, clicked_sens_data):
+    print('we getting updated in the sensor id')
     if selected_country in country_sens \
             and selected_region in country_sens[selected_country] \
             and selected_city in country_sens[selected_country][selected_region] \
             and selected_type in country_sens[selected_country][selected_region][selected_city]:
 
         return [{'label': sensorid, 'value': sensorid} for sensorid in
-                country_sens[selected_country][selected_region][selected_city][selected_type]]
+                country_sens[selected_country][selected_region][selected_city][selected_type]], None, None
 
+    if clicked_sens_data is not None:
+        return[{'label': clicked_sens_data[0], 'value': clicked_sens_data[0]}], clicked_sens_data[0], clicked_sens_data[1]
     else:
-        return []
+        return [], None, None
 
-#---------------------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------------------
 # update on timeseries tab
 @app.callback(
     Output('output-container-timeseries', 'figure'),
@@ -156,38 +175,40 @@ def set_sensors_typ_options(selected_country, selected_region, selected_city, se
     Input('city-id', 'value'),
     Input('viable-sensor-id', 'value'),
     Input('sensor_typ-dropdown', 'value'),
-    Input('type_of_measurement_id', 'value')
+    Input('type_of_measurement_id', 'value'),
+    Input('clicked_sensor_value', 'data'),
+    Input('submit', 'n_clicks')
 )
-def timeseries_update(from_time, to_time, land, region, city, viable_sensor_id, sensor_typ, type_of_measurement):
+def timeseries_update(from_time, to_time, land, region, city, viable_sensor_id, sensor_typ, type_of_measurement,
+                      clicked_sensor_data, submit):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'submit' not in changed_id:  # check if button was clicked
+        return {}
+
     if viable_sensor_id is not None and type_of_measurement != '':
         start_time = datetime.strptime(from_time, '%Y-%m-%d')
         end_time = datetime.strptime(to_time, '%Y-%m-%d')
-        # sensors = api.get_sensors(country=land, region=region, city=city, return_cities=True)
-        sensor_data = api.download_sensors(viable_sensor_id, start_time, end_time)
-        # start_time_str = start_time.strftime("%Y-%m-%d")
-        # path = database.buildLocalPath(viable_sensor_id, str(sensor_typ).upper(), start_time_str)
-        # if database.ZIP_MODE is False:
-        #    with open(path, 'r', encoding='utf8', errors='ignore') as sensor_file:
-        #        sens_data = json.load(sensor_file)
-        #else:
-        #    with gzip.open(path, 'r') as fin:
-        #        sens_data = json.loads(fin.read().decode('utf-8'))
-        # df = pd.json_normalize(sensor_data[viable_sensor_id], 'dataList', ['id', 'type'])
+        if type(viable_sensor_id) is int:
+            sensor_data = api.download_sensors([viable_sensor_id], start_time, end_time)
+            fig = px.line(sensor_data[viable_sensor_id].dataFrame, x=sensor_data[viable_sensor_id].dataFrame.index,
+                          y=type_of_measurement)
+        else:
+            sensor_data = api.download_sensors(viable_sensor_id, start_time, end_time)
 
-        fig = make_subplots(rows=len(sensor_data), cols=1)
-        for idx in range(0, len(sensor_data)):
-            fig.add_trace(go.Line(x=sensor_data[viable_sensor_id[idx]].dataFrame.index,
-                                  y=sensor_data[viable_sensor_id[idx]].dataFrame[type_of_measurement],
-                                  name=(str(viable_sensor_id[idx]))), row=(idx+1), col=1)
+            fig = make_subplots(rows=len(sensor_data), cols=1)
+            for idx in range(0, len(sensor_data)):
+                fig.add_trace(go.Line(x=sensor_data[viable_sensor_id[idx]].dataFrame.index,
+                                      y=sensor_data[viable_sensor_id[idx]].dataFrame[type_of_measurement],
+                                      name=(str(viable_sensor_id[idx]))), row=(idx + 1), col=1)
 
-        new_height = 500 * len(sensor_data)
-        fig.update_layout(height=new_height)
+            new_height = 500 * len(sensor_data)
+            fig.update_layout(height=new_height)
         return fig
+
     return {}
 
-#-------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------
 # Worldmap
-# adjust here now to be with a timer and also to measure
 @app.callback(
     Output('worldmap-graph-2', 'figure'),
     Input('type_of_measurement_id_worldmap', 'value'),
@@ -204,10 +225,19 @@ def update_Worldmap(type_, submit):
     return worldmap.update_map(type_)
 
 
+@app.callback([Output('clicked_sensor_value', 'data'), Output('tabs-example', 'value')],
+              Input('worldmap-graph-2', 'clickData'), Input('type_of_measurement_id_worldmap', 'value'))
+def display_click_data(clickData, type_of_measurement):
+    if clickData is not None:
+        return [clickData['points'][0]['customdata'][0], type_of_measurement], 'timeseries'
+    return dash.no_update
+
+
 def generate_output_id(value1):
     return '{} container'.format(value1[0])
 
-#--------------------------------------------------------------------------------------------------------
+
+# --------------------------------------------------------------------------------------------------------
 # update on similarities tab
 @app.callback(
     Output('output-container-similarities', 'figure'),
@@ -224,27 +254,29 @@ def generate_output_id(value1):
 )
 def similarities_update(from_time, to_time, country, state, nr_sensors, type_of_measurement, nr_clusters, submit):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'submit' not in changed_id: # check if button was clicked
-        return {},'',''
+    if 'submit' not in changed_id:  # check if button was clicked
+        return {}, '', ''
     print("yes we clicked submit - lets go")
     if type_of_measurement == '':
         print("no type of measurement selected")
-        return {},"Please enter a Type of measurement",''
+        return {}, "Please enter a Type of measurement", ''
     if type_of_measurement != 'temperature' and type_of_measurement != 'humidity':
         print("Invalid Sensor Type")
-        return {},"Error in finding sensor type",''
+        return {}, "Error in finding sensor type", ''
 
     if nr_clusters == None:
         nr_clusters = 4
 
-    return_dict = similarities.similarities_logic(from_time, to_time, country, state, nr_sensors, type_of_measurement, int(nr_clusters))
+    return_dict = similarities.similarities_logic(from_time, to_time, country, state, nr_sensors, type_of_measurement,
+                                                  int(nr_clusters))
 
     return return_dict['fig'], [html.Div([html.P('Observed Sensors: ' + str(return_dict['nr_sensors'])),
                                           html.P('From ' + from_time + ' to ' + to_time),
                                           html.P('Country: ' + country),
                                           html.P('State: ' + state),
-                                          html.P('Type of Measurement: ' + type_of_measurement)])] , \
-           [html.Div(html.P("Cluster " + str(i) + ": " + str(index))) for i, index in enumerate(return_dict['db_indices'], 1) if i < 9]
+                                          html.P('Type of Measurement: ' + type_of_measurement)])], \
+           [html.Div(html.P("Cluster " + str(i) + ": " + str(index))) for i, index in
+            enumerate(return_dict['db_indices'], 1) if i < 9]
 
 
 @app.callback(
@@ -253,13 +285,15 @@ def similarities_update(from_time, to_time, country, state, nr_sensors, type_of_
 def update_output(value):
     return '{} Clusters'.format(value)
 
+
 @app.callback(
     dash.dependencies.Output('nr_sensors-output-container', 'children'),
     [dash.dependencies.Input('nr_sensors', 'value')])
 def update_output(value):
     return '{} Sensors'.format(value)
 
-#----------------------------------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------------------------------
 # update on anomaly tab
 @app.callback(
     Output('output-container-anomaly', 'figure'),
@@ -274,15 +308,15 @@ def update_output(value):
 )
 def anomaly_update(from_time, to_time, country, state, type_of_measurement, submit):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'submit' not in changed_id: # check if button was clicked
-        return {}, '',''
+    if 'submit' not in changed_id:  # check if button was clicked
+        return {}, '', ''
     print("yes we clicked submit - lets go")
     if type_of_measurement == '':
         print("no type of measurement selected")
-        return {}, "Please enter a Type of measurement",''
+        return {}, "Please enter a Type of measurement", ''
     if type_of_measurement != 'temperature' and type_of_measurement != 'humidity':
         print("Invalid Sensor Type")
-        return {}, "Error in finding sensor type",''
+        return {}, "Error in finding sensor type", ''
 
     return_dict = anomaly.anomaly_logic(from_time, to_time, country, state, type_of_measurement)
 
@@ -291,8 +325,9 @@ def anomaly_update(from_time, to_time, country, state, type_of_measurement, subm
                                           html.P('From ' + from_time + ' to ' + to_time),
                                           html.P('Country: ' + country),
                                           html.P('State: ' + state),
-                                          html.P('Type of Measurement: ' + type_of_measurement)])] ,\
+                                          html.P('Type of Measurement: ' + type_of_measurement)])], \
            [html.Div(html.P("Anomaly DB Index: " + str(return_dict['db_index'])))]
+
 
 app.css.append_css({
     'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'
