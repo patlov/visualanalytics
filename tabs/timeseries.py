@@ -27,24 +27,26 @@ layout_timeseries = html.Div([
             min_date_allowed=datetime(2015, 8, 5),
             max_date_allowed=datetime.today() - timedelta(days=2),
             initial_visible_month=datetime.today(),
-            date=(datetime.today() - timedelta(days=1)).date()
+            date=(datetime.today() - timedelta(days=10)).date(),
+            style={'margin' : '1em'}
         )
-    ]),
+    ], className='text-primary', style={'font-weight': 'bold'}),
     html.Label([
-        "To time:",
+        "To time:*",
         dcc.DatePickerSingle(
             id='to_time_id',
             min_date_allowed=datetime(2015, 8, 5),
             max_date_allowed=datetime.today() - timedelta(days=2),
             initial_visible_month=datetime.today(),
-            date=(datetime.today()).date()
+            date=(datetime.today() - timedelta(days=9)).date(),
+            style={'margin' : '1em'}
         ),
-    ]),
+    ], className='text-primary', style={'font-weight': 'bold'}),
     dbc.Row(
         [
             dbc.Col(
                 html.Label([
-                    "Land:",
+                    "Country:*",
                     dcc.Dropdown(
                         id='land-id',
                         options=[{'label': land, 'value': land} for land in country_sens],
@@ -53,39 +55,39 @@ layout_timeseries = html.Div([
                         className='form-select',
                         style=styles['input_fields']
                     ),
-                ], id='land_label_id')
+                ], id='land_label_id', className='text-primary', style={'font-weight': 'bold'})
             ),
             dbc.Col(
                 html.Label([
-                    "Region:",
+                    "State:*",
                     dcc.Dropdown(id='region-id', className='form-select', style=styles['input_fields']),
-                ], id='region_label_id')
+                ], id='region_label_id', className='text-primary', style={'font-weight': 'bold'}),
             ),
             dbc.Col(
                 html.Label([
-                    "City:",
+                    "City:*",
                     dcc.Dropdown(id='city-id', className='form-select', style=styles['input_fields']),
-                ], id='city_label_id')
+                ], id='city_label_id', className='text-primary', style={'font-weight': 'bold'}),
             ),
             dbc.Col(
                 html.Label([
-                    "SensorTyp:",
+                    "Sensor type:*",
                     dcc.Dropdown(id='sensor_typ-dropdown', className='form-select', style=styles['input_fields']),
-                ], id='sensortyp_label_id'),
+                ], id='sensortyp_label_id', className='text-primary', style={'font-weight': 'bold'}),
             ),
             dbc.Col(
                 html.Label([
-                    "SensorID:",
+                    "Sensor ID:*",
                     dcc.Dropdown(id='viable-sensor-id',
                                  multi=True,
                                  className='form-select',
                                  style=styles['input_fields']
                                  )
-                ], id='sensorID_label_id'),
+                ], id='sensorID_label_id', className='text-primary', style={'font-weight': 'bold'}),
             ),
             dbc.Col(
                 html.Label([
-                    "Type of Measurement:",
+                    "Type of Measurement:*",
                     dcc.Dropdown(
                         id='type_of_measurement_id',
                         options=[
@@ -97,7 +99,7 @@ layout_timeseries = html.Div([
                         className='form-select',
                         style=styles['input_fields']
                     ),
-                ], id='type_of_measurement_label_id')
+                ], id='type_of_measurement_label_id', className='text-primary', style={'font-weight': 'bold'}),
             )
         ],
         justify="center",
@@ -123,7 +125,7 @@ layout_ts = html.Div([
     dbc.Row(
         [
             dbc.Col(layout_timeseries, width=4, style={'background': '#e6f9ff', 'padding': '1em', 'margin': '1em'}),
-            dbc.Col(info_ts, width=4, style={'background': '#e6f9ff', 'padding': '1em', 'margin': '1em'}),
+            dbc.Col(info_ts, width=4, style={'background': '#e6ffcc', 'padding': '1em', 'margin': '1em'}),
         ],
         justify="center",
     ),

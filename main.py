@@ -192,6 +192,8 @@ def timeseries_update(from_time, to_time, land, region, city, viable_sensor_id, 
             sensor_data = api.download_sensors([viable_sensor_id], start_time, end_time)
             fig = px.line_3d(sensor_data[viable_sensor_id].dataFrame, x=sensor_data[viable_sensor_id].dataFrame.index,
                           y=type_of_measurement, z='humidity')
+            fig.update_traces(line=dict(color="red", width=4))
+            fig.update_layout(height=800)
         else:
             sensor_data = api.download_sensors(viable_sensor_id, start_time, end_time)
 

@@ -76,7 +76,8 @@ def update_map(value_type, refresh=False):
 
     typed_sensor_df = sensor_df.loc[sensor_df['value_type'] == value_type]
 
-    typed_sensor_df["value"] = pd.to_numeric(typed_sensor_df["value"], downcast="float")
+    typed_sensor_df["value"] = typed_sensor_df["value"].astype(float)
+    typed_sensor_df['size'] = 100
 
     if value_type == 'temperature':
         color_scale = [ [0.0, "#3333ff"], [0.3, '#00ffff'], [0.5, "green"], [0.6, "yellow"], [0.8, "red"], [1, "red"]]
@@ -85,11 +86,14 @@ def update_map(value_type, refresh=False):
         color_scale = [[0.0, "#ffff00"], [0.5, "green"], [0.6, "#0099cc"], [1, "#3366cc"]]
         color_range = [0, 100]
 
-    fig = px.scatter_mapbox(typed_sensor_df, hover_name='value_type', lat="latitude", lon="longitude", color='value',
+    fig = px.scatter_mapbox(typed_sensor_df, hover_name='value', lat="latitude", lon="longitude", color='value',
                             zoom=2,
                             height=850,
                             range_color=color_range,
+                            hover_data=['value_type', 'sensor_id', 'latitude', 'longitude', 'timestamp'],
                             custom_data=['sensor_id'],
+                            size_max=30,
+                            size='size',
                             color_continuous_scale= color_scale
                             )
     fig.update_layout(mapbox_style="dark", mapbox_accesstoken=token)
