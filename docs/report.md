@@ -10,17 +10,55 @@ Maximilian Theiner 11714265<br/>
 
 ## Motivation and Goals
 
-In this project we want to visualize the data of [sensor.community](https://sensor.community/en/) in an clear and easy to understand way. Our tool provides basic functionality, like looking for a specific sensor in a specific time range and watch the measurements visually, as well as advanced visualization techniques, like clustering of similar sensors or anomaly search. 
+In this project we created GeoCluster Visualizer, a tool to visualise the data of [sensor.community](https://sensor.community/en/) in an clear and easy understandable way. Our tool provides basic functionality, like looking for a specific sensor in a specific time range and watch the measurements visually, as well as advanced visualisation techniques, like clustering of similar sensors or find weather anomalies.
 
+One of our main goals was to use the largest available data set and be able to present the user all available data from [sensor.community](https://sensor.community/en/) . We started by downloading the data set from their archive http://archive.sensor.community/ but quickly realised, that the data set is many hundred Gigabyte large. We had to came up with an idea to crawl the data in real time as fast as possible, which we describe at [Downloading](#Downloading) in more detail. 
 
+Even crawling the data in real time takes more time, we found it more challenging and interesting for user experience  to have current measurements in contrast to a fixed data set from the past. 
 
-## Design of our Solution
+We focus on time series visualisation, but we tried to present the data also in other ways, like we do at the [worldmap](#Worldmap). 
+
+## Program Design
+
+Plotly description....
 
 ### Backend
 
 ### Frontend 
 
-## Description of our Implementation
+GeoClima consists of 4 Tabs with different functionalities. 
+
+#### Worldmap
+
+
+
+#### Similarities
+
+In this tab we show the user similar measurements by clustering the sensor data and present it. Some input fields are required (marked with *) and some are optional. 
+
+After the user enters the required time range (from-to) and the type of measurement (`temperature` or `humidity`) we randomly select one sensor of each country in our database and cluster these results with k-means. More about the clustering process is described in [Finding similarities and anomalies](#Finding similarities and anomalies). As result the user gets presented k clusters (the default value for k is 4) sorted by their similarity, calculated with [DB-Index](#DB-Index). 
+
+This features allows us to explore different kind of similarities between cities which are far from each other and e.g. we can see that the temperature in Toronto behaves same es in Graz. 
+
+For more specific requests GeoClima supports optional input fields like `Country` , `State` , `Number of sensors per Region` and `Number of Clusters` .  If `Country` and/or `State` is provided we only search for similarities in this region. One can increase the granularity of sensors by increasing the `Number of sensors per Region`. 
+
+On the right GeoClima provide some additional information about the current user request, like the number of observed sensors, the selected input fields and the DB Index of the clusters. With this information one can easily see how different the clusters are. 
+
+#### Timeseries
+
+
+
+#### Anomaly
+
+In the anomaly-tab we display anomaly behaviour of sensors. This can be because of anomaly weather conditions, as well as from incorrect measurement. Again the user enters the time range and the type of measurement (`temperature` or `humidity`) and we randomly select one sensor of each country in our database to find anomalies between countries.
+
+After clicking submit, very similar to our similarities search, we compute clusters with the k-means algorithm, whereat k equals 5. But here we calculate the dissimilarity between clusters and present the most unique cluster as an anomaly. The other computed clusters were merged together as a second cluster to have a better overview and comparison to the anomaly. 
+
+We also support specific requests with optional input fields `Country` and `State` to find anomalies in a specific location. If `Country` and/or `State` is provided we increase the number of observed sensors to have meaningful results. 
+
+As in the similarities view we again provide on the right some additional information about the current user request and the DB Index of the anomaly cluster. 
+
+## Implementation
 
 #### Downloading
 

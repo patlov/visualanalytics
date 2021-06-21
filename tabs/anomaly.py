@@ -34,7 +34,7 @@ def anomaly_logic(from_time, to_time,country, state, type_of_measurement):
     if country != None:
         nr_sensors = 10
     if state != None:
-        nr_sensors = 50
+        nr_sensors = 10
 
     sensor_ids = api.get_sensors(country=country, state=state, return_sensors=True, num_sensors=nr_sensors, type=['bme280', 'dht22', 'bmp280'])
     print("download sensors")
@@ -83,24 +83,42 @@ def anomaly_logic(from_time, to_time,country, state, type_of_measurement):
 
 left_form = html.Div([
         html.Label([
-            "From time:",
+            "From time:*",
             dcc.DatePickerSingle(
                 id='from_time_id',
                 min_date_allowed=datetime(2015, 8, 5),
                 max_date_allowed=datetime.today() - timedelta(days=2),
                 initial_visible_month=datetime.today(),
                 date=(datetime.today() - timedelta(days=10)).date(),
+                style={'margin' : '1em'}
             )
-        ]),
+        ], className='text-primary', style={'font-weight': 'bold'}),
         html.Label([
-            "To time:",
+            "To time:*",
             dcc.DatePickerSingle(
                 id='to_time_id',
                 min_date_allowed=datetime(2015, 8, 5),
                 max_date_allowed=datetime.today() - timedelta(days=2),
                 initial_visible_month=datetime.today(),
-                date=(datetime.today() - timedelta(days=9)).date()
+                date=(datetime.today() - timedelta(days=9)).date(),
+                style={'margin' : '1em'}
             ),
+        ], className='text-primary', style={'font-weight': 'bold'}),
+        html.Div([
+            html.Label([
+                "Type of Measurement:*",
+                dcc.Dropdown(
+                    id='type_of_measurement_id',
+                    options=[
+                        {'label': 'Temperature', 'value': 'temperature'},
+                        {'label': 'Humidity', 'value': 'humidity'},
+                    ],
+                    value='',
+                    multi=False,
+                    className='form-select',
+                    style={'margin': '1em', 'min-width': '200px'}
+                ),
+            ], className='text-primary', style={'font-weight': 'bold'})
         ]),
         html.Br(),
         html.Label([
@@ -116,21 +134,6 @@ left_form = html.Div([
         html.Label([
             "State:",
             dcc.Dropdown(id='region-id', value='', className='form-select', style={'min-width': '200px'}),
-        ]),
-        html.Div([
-            html.Label([
-                "Type of Measurement:",
-                dcc.Dropdown(
-                    id='type_of_measurement_id',
-                    options=[
-                        {'label': 'Temperature', 'value': 'temperature'},
-                        {'label': 'Humidity', 'value': 'humidity'},
-                    ],
-                    value='',
-                    multi=False,
-                    className='form-select'
-                ),
-            ])
         ]),
         html.Br(),
         html.Button('Submit', id='submit', n_clicks=0, className='btn btn-primary'),

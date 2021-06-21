@@ -18,7 +18,7 @@ import dash_bootstrap_components as dbc
 # connector = aiohttp.TCPConnector(force_close=True)
 
 # sensor_per_city = api.get_sensors(return_sensors=True, num_sensors=1, type=['bme280', 'dht22', 'bmp280'])
-sensor_per_country = api.get_state_sensors(num_cities=1, type=['bmp280', 'dht22', 'bmp280'])
+sensor_per_country = api.get_state_sensors(num_cities=1, type=['bme280', 'dht22', 'bmp280'])
 token = open("keys/mapbox_token").read()
 
 sensors_from_web = None
@@ -85,15 +85,20 @@ def update_map(value_type, refresh=False):
 
     typed_sensor_df["value"] = pd.to_numeric(typed_sensor_df["value"], downcast="float")
 
+    if value_type == 'temperature':
+        color_scale = [ [0.0, "#3333ff"], [0.3, '#00ffff'], [0.5, "green"], [0.6, "yellow"], [0.8, "red"], [1, "red"]]
+        color_range =[-20,50]
+    else: # humidity
+        color_scale = [[0.0, "#ffff00"], [0.5, "green"], [0.6, "#0099cc"], [1, "#3366cc"]]
+        color_range = [0, 100]
+
     fig = px.scatter_mapbox(typed_sensor_df, hover_name='value_type', lat="latitude", lon="longitude", color='value',
                             zoom=2,
                             height=850,
+                            range_color=color_range,
                             custom_data=['sensor_id'],
-                            color_continuous_scale=[
-                                [0.0, "blue"],
-                                [0.1, "green"],
-                                [0.3, "yellow"],
-                                [1, "red"]]
+                            size=50,
+                            color_continuous_scale= color_scale
                             )
     fig.update_layout(mapbox_style="dark", mapbox_accesstoken=token)
     fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
