@@ -30,6 +30,15 @@ GeoClima consists of 4 Tabs with different functionalities.
 
 #### Worldmap
 
+In this tab we get for every federal state in the world, which sends sensor data - one sensor and display
+it over the whole map. We reduced it to specific sensor types (`'bme280', 'dht22', 'bmp280'`) which only send temperature and humidity data. The reason
+being for that, is we wanted to reduce the amount of requests we would send to the server and also usability. 
+We don't want long loading times.
+
+The sensor data displayed shows the average of the last 5 minutes and can be refreshed by the button on the topright with
+the name `refresh`. On the top-left you can choose which type of sensor you want to display on the map. 
+Now if you click onto a sensor, it will move you to the tab time-series where you choose a time window (from / to-time)
+and the sensor gets plotted and you can see the data in a linegraph.
 
 
 #### Similarities
@@ -46,6 +55,21 @@ On the right GeoClima provide some additional information about the current user
 
 #### Timeseries
 
+In this tab we can look at many sensors which are in the same City, and look for similar patterns in the timeseries and maybe detect outliers or
+sensors which are defect or not behaving in the intended way.
+
+Either you get to the timeseries tab via clicking onto a sensor on the worldmap - then choose the from-time and the
+to-time.
+
+or
+
+You start by clicking in which country, federal state, city, sensortyp, sensorid and measurement value you want to display. 
+
+By selecting all the given dropdowns or clicking the sensor on the map, we get the sensor_id(s) and based on the
+from-time, to-time and the sensor_id(s), we check if the same sensordata is in the cache. If yes we use it, otherwise 
+GeoClima downloads all the data in the background and then plots the graph(s) on the website.
+
+You cannot generate a linechart without specifying all the dropdown fields, except you choose a sensor from the map.
 
 
 #### Anomaly
