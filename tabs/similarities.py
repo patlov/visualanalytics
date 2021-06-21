@@ -78,7 +78,8 @@ def similarities_logic(from_time, to_time, country, state, nr_sensors, type_of_m
         coloring = 'City'
     if state != None:
         coloring = 'SensorID'
-    fig = px.line(df, x='Time', y=type_of_measurement, color=coloring, hover_name='City', line_group='City', facet_row='ClusterID')
+    fig = px.line(df, x='Time', y=type_of_measurement, color=coloring, hover_name='City', line_group='City', facet_row='ClusterID',
+                  custom_data=[]) # todo maybe add here rows to hand over at click event
 
     fig.update_traces(patch={"line":{"color":"red", "width":4}},
                   selector={"legendgroup":"AVERAGE"})
@@ -209,5 +210,6 @@ layout_similarities = html.Div([
 
 layout = html.Div([
     layout_similarities,
+    html.Pre(id='click-data'),
     dcc.Loading(children=[dcc.Graph(id='output-container-similarities', style={'height': '90vh'})], color='#ff5c33', type='graph'),
 ], )

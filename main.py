@@ -191,8 +191,10 @@ def timeseries_update(from_time, to_time, land, region, city, viable_sensor_id, 
         end_time = datetime.strptime(to_time, '%Y-%m-%d')
         if type(viable_sensor_id) is int:
             sensor_data = api.download_sensors([viable_sensor_id], start_time, end_time)
-            fig = px.line(sensor_data[viable_sensor_id].dataFrame, x=sensor_data[viable_sensor_id].dataFrame.index,
-                          y=type_of_measurement)
+            fig = px.line_3d(sensor_data[viable_sensor_id].dataFrame, x=sensor_data[viable_sensor_id].dataFrame.index,
+                          y=type_of_measurement, z='humidity')
+            fig.update_traces(line=dict(color="red", width=4))
+            fig.update_layout(height=800)
         else:
             sensor_data = api.download_sensors(viable_sensor_id, start_time, end_time)
 
@@ -295,6 +297,14 @@ def update_output(value):
     [dash.dependencies.Input('nr_sensors', 'value')])
 def update_output(value):
     return '{} Sensors'.format(value)
+
+
+# @app.callback(
+#     Output('click-data', 'children'),
+    # Input('output-container-similarities', 'clickData'))
+# def display_click_data(clickData):
+#     print(clickData)
+    #return json.dumps(clickData, indent=2)
 
 
 # ----------------------------------------------------------------------------------------------------
