@@ -11,7 +11,7 @@ import asyncio
 import dash_bootstrap_components as dbc
 
 # sensor_per_city = api.get_sensors(return_sensors=True, num_sensors=1, type=['bme280', 'dht22', 'bmp280'])
-sensor_per_country = api.get_state_sensors(num_cities=1, type=['bme280', 'dht22', 'bmp280'])
+sensor_per_country = api.get_state_sensors(num_cities=1, type=['dht22'])
 token = open("keys/mapbox_token").read()
 
 sensors_from_web = None
@@ -90,7 +90,6 @@ def update_map(value_type, refresh=False):
                             height=850,
                             range_color=color_range,
                             custom_data=['sensor_id'],
-                            size=50,
                             color_continuous_scale= color_scale
                             )
     fig.update_layout(mapbox_style="dark", mapbox_accesstoken=token)
@@ -117,7 +116,7 @@ layout = html.Div([
         [
             dbc.Col(html.Div([
         html.Label([
-            "Type of Measurement:",
+            "Type of Measurement:*",
             dcc.Dropdown(
                 id='type_of_measurement_id_worldmap',
                 options=[
@@ -126,9 +125,10 @@ layout = html.Div([
                 ],
                 value='',
                 multi=False,
-                className='form-select'
+                className='form-select',
+                style={'margin' : '1em', 'min-width': '200px'}
             ),
-        ])
+        ], className='text-primary', style={'font-weight': 'bold'})
     ]), width=4, style={'text-align':'center'}),
             dbc.Col([html.Button('Refresh', id='submit_world', n_clicks=0, className='btn btn-primary'),
             ], width=2, style={'font': 'Lucida Console'}),

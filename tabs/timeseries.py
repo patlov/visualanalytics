@@ -12,7 +12,8 @@ with open('database/country_sensors.json', 'r', encoding='utf-8') as file:
 styles = {
     'input_fields': {
         'min-width': '200px',
-        'display': 'block'
+        'display': 'block',
+        'margin' : '1em'
     }
 }
 
@@ -21,28 +22,30 @@ layout_timeseries = html.Div([
         html.P(
         "You can specifiy which sensor in which time range should be displayed"),
     html.Label([
-        "From time:",
+        "From time:*",
         dcc.DatePickerSingle(
             id='from_time_id',
             min_date_allowed=datetime(2015, 8, 5),
             max_date_allowed=datetime.today() - timedelta(days=2),
             initial_visible_month=datetime.today(),
-            date=(datetime.today() - timedelta(days=1)).date()
+            date=(datetime.today() - timedelta(days=1)).date(),
+            style={'margin': '1em'}
         )
-    ]),
+    ], className='text-primary', style={'font-weight': 'bold'}),
     html.Label([
-        "To time:",
+        "To time:*",
         dcc.DatePickerSingle(
             id='to_time_id',
             min_date_allowed=datetime(2015, 8, 5),
             max_date_allowed=datetime.today() - timedelta(days=2),
             initial_visible_month=datetime.today(),
-            date=(datetime.today()).date()
+            date=(datetime.today()).date(),
+            style={'margin' : '1em'}
         ),
-    ]),
+    ], className='text-primary', style={'font-weight': 'bold'}),
     html.Br(),
     html.Label([
-        "Land:",
+        "Country:",
         dcc.Dropdown(
             id='land-id',
             options=[{'label': land, 'value': land} for land in country_sens],
@@ -54,7 +57,7 @@ layout_timeseries = html.Div([
     ], id='land_label_id'),
     html.Br(),
     html.Label([
-        "Region:",
+        "State:",
         dcc.Dropdown(id='region-id', className='form-select',  style=styles['input_fields']),
     ], id='region_label_id'),
     html.Br(),
@@ -78,7 +81,7 @@ layout_timeseries = html.Div([
     ], id='sensorID_label_id'),
     html.Br(),
     html.Label([
-        "Type of Measurement:",
+        "Type of Measurement:*",
         dcc.Dropdown(
             id='type_of_measurement_id',
             options=[
@@ -90,7 +93,7 @@ layout_timeseries = html.Div([
             className='form-select',
             style=styles['input_fields']
         ),
-    ], id='type_of_measurement_label_id'),
+    ], id='type_of_measurement_label_id' , className='text-primary', style={'font-weight': 'bold'}),
     html.Br(),
     html.Button('Submit', id='submit', n_clicks=0, className='btn btn-primary')
 ], style={'width': '80%', 'margin': 'auto', 'text-align': 'center'})
