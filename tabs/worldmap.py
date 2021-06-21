@@ -11,7 +11,7 @@ import asyncio
 import dash_bootstrap_components as dbc
 
 # sensor_per_city = api.get_sensors(return_sensors=True, num_sensors=1, type=['bme280', 'dht22', 'bmp280'])
-sensor_per_country = api.get_state_sensors(num_cities=1, type=['dht22'])
+sensor_per_country = api.get_state_sensors(num_cities=1, type=['bme280', 'dht22', 'bmp280'])
 token = open("keys/mapbox_token").read()
 
 sensors_from_web = None
@@ -140,6 +140,6 @@ layout = html.Div([
         justify="between",
         style={'margin-top':'1em'}
     ),
-    dcc.Loading(children=[dcc.Graph(id='worldmap-graph-2', figure=emptyMap())], color='#ff5c33',
+    dcc.Loading(children=[dcc.Graph(id='worldmap-graph-2', figure=emptyMap(), style={'height':'850px'})], color='#ff5c33',
                 type='cube'),
 ])

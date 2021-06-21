@@ -20,13 +20,15 @@ We focus on time series visualisation, but we tried to present the data also in 
 
 ## Program Design
 
-Plotly description....
+### Infrastructure
 
-### Backend
+We implemented the application GeoClima in python with the IDE PyCharm from JetBrains.  For visualisation and the frontend we used the python library [Plotly](https://plotly.com/), which delivers easy to use methods with much functionality.  
+
+Some functionality, like API requests or sensor downloads, are implemented multiprocessed using the python library aiohttp and asyncio. 
 
 ### Frontend 
 
-GeoClima consists of 4 Tabs with different functionalities. 
+The frontend of our application GeoClima consists of 4 Tabs with different functionalities: [Worldmap](#Worldmap), [Similarities](#Similarities), [Timeseries](#Timeseries) and [Anomaly](#Anomaly). 
 
 #### Worldmap
 
@@ -37,7 +39,7 @@ being for that, is we wanted to reduce the amount of requests we would send to t
 The sensor data displayed shows the average of the last 5 minutes and can be refreshed by the button on the top-right with
 the name `refresh`. On the top-left you can choose which type of sensor you want to display on the map. 
 Now if you click onto a sensor, it will move you to the tab time-series where you choose a time window (from / to-time)
-and the sensor gets plotted and you can see the data in a linegraph.
+and the sensor gets plotted as 3D-graph with `temperature` and `humidity` corresponding the a specific time.
 
 
 #### Similarities
@@ -57,18 +59,20 @@ On the right GeoClima provide some additional information about the current user
 In this tab we can look at many sensors which are in the same City, and look for similar patterns in the timeseries and maybe detect outliers or
 sensors which are defect or not behaving in the intended way.
 
-Either you get to the timeseries tab via clicking onto a sensor on the worldmap - then choose the from-time and the
-to-time.
+Either you get to the timeseries tab via clicking onto a sensor on the worldmap - then choose the `from-time` and the
+`to-time`
 
 or
 
-You start by clicking in which country, federal state, city, sensortyp, sensorid and measurement value you want to display. 
+You start by clicking in which `country`, federal `state`, `city`, `sensor type`, `sensor ID` and `measurement value` you want to display. 
 
 By selecting all the given dropdowns or clicking the sensor on the map, we get the sensor_id(s) and based on the
 from-time, to-time and the sensor_id(s), we check if the same sensordata is in the cache. If yes we use it, otherwise 
 GeoClima downloads all the data in the background and then plots the graph(s) on the website.
 
 You cannot generate a linechart without specifying all the dropdown fields, except you choose a sensor from the map.
+
+Additonally we added the functionality to display the sensor data in 3D. In this case `Type of Measurement` is not considered, because `temperature` and `humidity` are represented in the 3D graph, corresponding the the given time range. 
 
 
 #### Anomaly
@@ -85,24 +89,24 @@ As in the similarities view we again provide on the right some additional inform
 
 #### Downloading
 
-Sensorcommunity is organized in a large folder structure that represents a tree with year, months and day. In the lowest layer of the tree structure the accoring sensor measurements for a day are saved. There are different types of sensors (e.g. bmp280) for different vectors (e.g. temperature, humidity ..). We query a sensor for a day by building the corresponing urls with buildCSVurl. </br>
+Sensorcommunity is organised in a large folder structure that represents a tree with year, months and day. In the lowest layer of the tree structure the according sensor measurements for a day are saved. There are different types of sensors (e.g. bmp280) for different vectors (e.g. temperature, humidity ..). We query a sensor for a day by building the corresponding URL with buildCSVurl. </br>
 
-The user can specifity start_date, end_date in the frontend and we generate a every file url from this input. After creating the links for every sensor, we download them multiprocessed by creating a Pool for every CPU core. This allows faster download speeds.
+The user can specify start_date, end_date in the frontend and we generate a every file url from this input. After creating the links for every sensor, we download them multiprocessed by creating a Pool for every CPU core. This allows faster download speeds.
 
 #### Preprocessing
 
-In preprocess.py we do a lot of preprocessing before we actually cluter the data. Preprocessing consists of following steps:
+In preprocess.py we do a lot of preprocessing before we actually cluster the data. Preprocessing consists of following steps:
 
 * Sort daily dataframe by time
 * use timestamp as index
 * cat dataframes together
 * resample dataframe
-* drop nan values
+* drop NaN values
 * interpolate data to fill small gaps
 
 #### Geo Clustering
 
-For every sensor we have a position as latitude and longitude. We used the HERE maps reverse geocoder (https://developer.here.com/documentation/geocoder/dev_guide/topics/what-is.html) to tranform this position into a classifiable country information. For every position we got the countryname (e.g. AUT for Austria), statename (e.g. Styria) and cityname (e.g. Graz). This enabled us to cluster every sensor into the corresponding geographic category. By packing every sensor in a large dictonary, we could retrieve sensors for specific regions of the world and implement sophisticated query algorithms for example: “query two sensors for every city in the world”. See clutering.py and here.py for more information.
+For every sensor we have a position as latitude and longitude. We used the HERE maps reverse geocoder (https://developer.here.com/documentation/geocoder/dev_guide/topics/what-is.html) to transform this position into a classifiable country information. For every position we got the country name (e.g. AUT for Austria), state name (e.g. Styria) and city name (e.g. Graz). This enabled us to cluster every sensor into the corresponding geographic category. By packing every sensor in a large dictionary, we could retrieve sensors for specific regions of the world and implement sophisticated query algorithms for example: “query two sensors for every city in the world”. See [clutering.py](../clustering.py) and [here.py](../here.py) for more information.
 
 #### Finding similarities and anomalies
 
@@ -113,6 +117,14 @@ With our frontend and the capability to select sensors by geographic region we m
 The next step is to identify clusters that can be classified as anomalies and clusters that give a hint to similarities. To do that we needed metric that indicates how unique/good a cluster is. There are several ways to implement such a cluster analysis, we chose the so called DB-index (https://en.wikipedia.org/wiki/Davies%E2%80%93Bouldin_index). Clusters with a low DB-index can be seen as unique and good cluster approximation.
 
 
+
+## Conclusion
+
+In this project we created an application called GeoCluster. The most challenging part was to have a solid structure for crawling the data in real time and deliver it in an appropriate time to the frontend. It took us weeks to find the best solution for crawling data with csv-files. Of course, it would have been easier if we would have downloaded a part of the database once and then processed it, but we found it more interesting for users to display up-to-date data. We also implemented the world map, which delivers real-time sensor data from the last 5 minutes of all sensors around the world.
+
+Problems occur, as already mentioned, mostly at crawling the huge amount of data. Sometimes the sensors were invalid or had an other form, some measurements were invalid (a temperature of -140 degree of a sensor in Italy) and sometime the API banned us temporary because of too many requests. Latter would be our net next for improvement for having a more solid version of our application.
+
+If more time would have been available we also would have implemented other data visualisation techniques with glyphs and added functionality to find more anomalies.
 
 
 

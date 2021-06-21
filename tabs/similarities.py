@@ -96,6 +96,10 @@ def similarities_logic(from_time, to_time, country, state, nr_sensors, type_of_m
 
 
 left_form = html.Div([
+        html.H1("Similarities", style={'text-align': 'center', 'margin-top': '1em'}),
+        html.P(
+        "To find similar measurements one sensor of each country is taken and gets compared with sensors of other regions."
+        "In addition you can specifiy the region by country and state, as well as the number of sensors of each country and the number of clusters"),
         html.Label([
             "From time:*",
             dcc.DatePickerSingle(
@@ -195,9 +199,6 @@ right_form = html.Div([
 ])
 
 layout_similarities = html.Div([
-        html.H1("Similarities", style={'text-align': 'center', 'margin-top':'1em'}),
-        html.P("To find similar measurement we take one sensor of each region as sample and compare it with all other regions, "
-               "otherwise the clusters would be clustered by location (because close sensors will have the similar measurement"),
         dbc.Row(
             [
                 dbc.Col(left_form, width=4, style={'background': '#e6f9ff', 'padding': '1em', 'margin':'1em'}),

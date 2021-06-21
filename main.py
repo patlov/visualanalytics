@@ -43,19 +43,20 @@ app.layout = html.Div([
     html.Div([
         dbc.Row(
             [
-                dbc.Col(html.Img(src=app.get_asset_url('geoclima.png'), style={'height':'100px'}), width=4),
+                dbc.Col(html.Img(src=app.get_asset_url('geoclima.png'), style={'height':'100px', 'float' : 'right'}), width=4),
                 dbc.Col(children=[
                     html.H1("GeoClima Visualizer"),
-                ], width=4, style={'font':'Lucida Console'}),
+                ], width=4, style={'font':'Lucida Console' , 'text-align' : 'center', 'margin':'auto'}),
+                dbc.Col(html.Img(src=app.get_asset_url('geoclima.png'), style={'height':'100px', 'text-align' : 'center'}), width=4),
             ],
             justify="center",
         ),
         html.Div([
-            html.Button('Impressum', id='open-centered', n_clicks=0, className='btn btn-info'),
+            html.Button('About', id='open-centered', n_clicks=0, className='btn btn-info'),
         ], style={'position': 'absolute', 'right': '5px', 'top': '20px'}),
         dbc.Modal(
             [
-                dbc.ModalHeader("Impressum GeoClima Visualizer"),
+                dbc.ModalHeader("About GeoClima Visualizer"),
                 dbc.ModalBody([html.Div('GeoClima Visualizer was created by '), html.Div('Lovric Patrick'),
                                html.Div('Kerschbaumer David'),
                                html.Div('Theiner Maximilian'), html.Div('TU Graz - Visual Analytics SS2021')]),
@@ -140,6 +141,7 @@ def set_sensors_typ_options(selected_country, selected_region, selected_city):
     Output('viable-sensor-id', 'options'),
     Output('viable-sensor-id', 'value'),
     Output('type_of_measurement_id', 'value'),
+    Output('3d_switcher', 'value'),
     Input('land-id', 'value'),
     Input('region-id', 'value'),
     Input('city-id', 'value'),
@@ -158,12 +160,12 @@ def set_sensors_typ_options(selected_country, selected_region, selected_city, se
             and selected_type in country_sens[selected_country][selected_region][selected_city]:
 
         return [{'label': sensorid, 'value': sensorid} for sensorid in
-                country_sens[selected_country][selected_region][selected_city][selected_type]], None, None
+                country_sens[selected_country][selected_region][selected_city][selected_type]], None, None, ''
 
     if clicked_sens_data is not None:
-        return[{'label': clicked_sens_data[0], 'value': clicked_sens_data[0]}], clicked_sens_data[0], clicked_sens_data[1]
+        return[{'label': clicked_sens_data[0], 'value': clicked_sens_data[0]}], clicked_sens_data[0], clicked_sens_data[1], '1'
 
-    return [], None, None
+    return [], None, None, ''
 
 
 # ---------------------------------------------------------------------------------------
@@ -178,10 +180,11 @@ def set_sensors_typ_options(selected_country, selected_region, selected_city, se
     Input('viable-sensor-id', 'value'),
     Input('sensor_typ-dropdown', 'value'),
     Input('type_of_measurement_id', 'value'),
+    Input('3d_switcher', 'value'),
     Input('submit', 'n_clicks')
 )
 def timeseries_update(from_time, to_time, land, region, city, viable_sensor_id, sensor_typ, type_of_measurement,
-                      submit):
+                      threeD, submit):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'submit' not in changed_id:  # check if button was clicked
         return {}
@@ -192,20 +195,25 @@ def timeseries_update(from_time, to_time, land, region, city, viable_sensor_id, 
         if type(viable_sensor_id) is int:
             sensor_data = api.download_sensors([viable_sensor_id], start_time, end_time)
             fig = px.line_3d(sensor_data[viable_sensor_id].dataFrame, x=sensor_data[viable_sensor_id].dataFrame.index,
-                          y=type_of_measurement, z='humidity')
-            fig.update_traces(line=dict(color="red", width=4))
+                          y='temperature', z='humidity')
+            fig.update_traces(line=dict(color="red", width=4)),
             fig.update_layout(height=800)
         else:
             sensor_data = api.download_sensors(viable_sensor_id, start_time, end_time)
+            if len(threeD) == 1 and threeD[0] == 1: # plot in 3d
+                fig = px.line_3d(sensor_data[viable_sensor_id[0]].dataFrame,
+                                 x=sensor_data[viable_sensor_id[0]].dataFrame.index, y='temperature', z='humidity')
+                fig.update_traces(line=dict(color="red", width=4)),
+                fig.update_layout(height=800)
+            else: # plot in 2d
+                fig = make_subplots(rows=len(sensor_data), cols=1)
+                for idx in range(0, len(sensor_data)):
+                    fig.add_trace(go.Line(x=sensor_data[viable_sensor_id[idx]].dataFrame.index,
+                                          y=sensor_data[viable_sensor_id[idx]].dataFrame[type_of_measurement],
+                                          name=(str(viable_sensor_id[idx]))), row=(idx + 1), col=1)
 
-            fig = make_subplots(rows=len(sensor_data), cols=1)
-            for idx in range(0, len(sensor_data)):
-                fig.add_trace(go.Line(x=sensor_data[viable_sensor_id[idx]].dataFrame.index,
-                                      y=sensor_data[viable_sensor_id[idx]].dataFrame[type_of_measurement],
-                                      name=(str(viable_sensor_id[idx]))), row=(idx + 1), col=1)
-
-            new_height = 500 * len(sensor_data)
-            fig.update_layout(height=new_height)
+                new_height = 500 * len(sensor_data)
+                fig.update_layout(height=new_height)
         return fig
 
     return {}
@@ -271,7 +279,7 @@ def similarities_update(from_time, to_time, country, state, nr_sensors, type_of_
         return {}, "Error in finding sensor type", ''
 
     if nr_clusters == None:
-        nr_clusters = 4
+        nr_clusters = 4 # default value
 
     return_dict = similarities.similarities_logic(from_time, to_time, country, state, nr_sensors, type_of_measurement,
                                                   int(nr_clusters))

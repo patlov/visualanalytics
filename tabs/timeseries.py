@@ -100,6 +100,18 @@ layout_timeseries = html.Div([
                         style=styles['input_fields']
                     ),
                 ], id='type_of_measurement_label_id', className='text-primary', style={'font-weight': 'bold'}),
+            ),
+            dbc.Col(
+                    dbc.Checklist(
+                        options=[
+                            {"label": "3D visualisation (temperature and humidity", "value": 1},
+                        ],
+                        value='',
+                        id="3d_switcher",
+                        inline=True,
+                        switch=True,
+                        style={'margin' : '1em'}
+                    ),
             )
         ],
         justify="center",

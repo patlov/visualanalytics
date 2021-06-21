@@ -82,6 +82,10 @@ def anomaly_logic(from_time, to_time,country, state, type_of_measurement):
 
 
 left_form = html.Div([
+        html.H1("Anomaly", style={'text-align': 'center', 'margin-top': '1em'}),
+        html.P(
+        "To find anomalies one sensor of of each country is taken and gets compared with sensors of other regions.  "
+        "In addition you can specifiy the region by country and/or state to find anomalies in this region."),
         html.Label([
             "From time:*",
             dcc.DatePickerSingle(
@@ -147,9 +151,6 @@ right_form = html.Div([
 ])
 
 layout_anomaly = html.Div([
-        html.H1("Anomaly", style={'text-align': 'center', 'margin-top':'1em'}),
-        html.P("Select the region where you want to find anomalies. You can only provide the country to search in the whole country. If country and state is provided, "
-               "anomalies in the state are provided"),
         dbc.Row(
             [
                 dbc.Col(left_form, width=4, style={'background': '#e6f9ff', 'padding': '1em', 'margin': '1em'}),
