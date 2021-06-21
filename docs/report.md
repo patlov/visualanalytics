@@ -85,6 +85,21 @@ As in the similarities view we again provide on the right some additional inform
 
 #### Downloading
 
+Sensorcommunity is organized in a large folder structure that represents a tree with year, months and day. In the lowest layer of the tree structure the accoring sensor measurements for a day are saved. There are different types of sensors (e.g. bmp280) for different vectors (e.g. temperature, humidity ..). We query a sensor for a day by building the corresponing urls with buildCSVurl. </br>
+
+The user can specifity start_date, end_date in the frontend and we generate a every file url from this input. After creating the links for every sensor, we download them multiprocessed by creating a Pool for every CPU core. This allows faster download speeds.
+
+#### Preprocessing
+
+In preprocess.py we do a lot of preprocessing before we actually cluter the data. Preprocessing consists of following steps:
+
+* Sort daily dataframe by time
+* use timestamp as index
+* cat dataframes together
+* resample dataframe
+* drop nan values
+* interpolate data to fill small gaps
+
 #### Geo Clustering
 
 For every sensor we have a position as latitude and longitude. We used the HERE maps reverse geocoder (https://developer.here.com/documentation/geocoder/dev_guide/topics/what-is.html) to tranform this position into a classifiable country information. For every position we got the countryname (e.g. AUT for Austria), statename (e.g. Styria) and cityname (e.g. Graz). This enabled us to cluster every sensor into the corresponding geographic category. By packing every sensor in a large dictonary, we could retrieve sensors for specific regions of the world and implement sophisticated query algorithms for example: “query two sensors for every city in the world”. See clutering.py and here.py for more information.
@@ -95,13 +110,8 @@ With our frontend and the capability to select sensors by geographic region we m
 
 #### DB-Index
 
-The next step is to identify clusters that can be classified as anomalies and clusters that give a hint to similarities. To do that we needed metric that indicates how unique a cluster is. There are several ways to implement such a cluster analysis, we chose the so called DB-index (https://en.wikipedia.org/wiki/Davies%E2%80%93Bouldin_index). Clusters with a low DB-index can be seen as unique and good cluster approximation.
+The next step is to identify clusters that can be classified as anomalies and clusters that give a hint to similarities. To do that we needed metric that indicates how unique/good a cluster is. There are several ways to implement such a cluster analysis, we chose the so called DB-index (https://en.wikipedia.org/wiki/Davies%E2%80%93Bouldin_index). Clusters with a low DB-index can be seen as unique and good cluster approximation.
 
-## Use case description
-
-
-
-## Discussion and Outlook
 
 
 
